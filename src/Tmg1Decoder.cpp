@@ -1,0 +1,354 @@
+#include "Tmg1Decoder.h"
+#include <new>
+#include <stdio.h> // For printf debugging
+
+Tmg1Decoder::Tmg1Decoder() {
+    memset(&_fileHeader, 0, sizeof(_fileHeader));
+    _previousFrame = nullptr;
+    _stream = nullptr;
+    _frameBufferSize = 0;
+}
+
+Tmg1Decoder::~Tmg1Decoder() {
+    if (_previousFrame) {
+        delete[] _previousFrame;
+    }
+}
+
+bool Tmg1Decoder::begin(Stream& stream) {
+    _stream = &stream;
+    if (readFileHeader() != Tmg1DecoderError::None) {
+        return false;
+    }
+
+    _frameBufferSize = getWidth() * getHeight(); // Assuming 1 bit per pixel for now
+    if (_frameBufferSize % 8 != 0) {
+        _frameBufferSize = (_frameBufferSize / 8) + 1;
+    } else {
+        _frameBufferSize /= 8;
+    }
+    
+    _previousFrame = new (std::nothrow) uint8_t[_frameBufferSize];
+    if (!_previousFrame) {
+        return false;
+    }
+    
+    return true;
+}
+
+#include "RiceBitReader.h" // Add this include
+
+bool Tmg1Decoder::decodeFrame(uint8_t* buffer, size_t bufferSize) {
+    if (bufferSize < _frameBufferSize) {
+        return false; // Output buffer is too small
+    }
+
+    Tmg1FrameHeader frameHeader;
+    Tmg1DecoderError err = readFrameHeader(frameHeader);
+    if (err != Tmg1DecoderError::None) {
+        return false;
+    }
+
+    // Handle empty payload (e.g., unchanged P-frame)
+    if (frameHeader.payloadSize == 0) {
+        if (frameHeader.frameType == 1) { // P-Frame
+            // If the output buffer is not the same as the previous frame buffer, copy the content
+            if (buffer != _previousFrame) {
+                memcpy(buffer, _previousFrame, _frameBufferSize);
+            }
+            return true;
+        } else { // I-Frame
+            // Empty I-Frame, fill with zeros (black)
+            memset(buffer, 0, _frameBufferSize);
+            memcpy(_previousFrame, buffer, _frameBufferSize);
+            return true;
+        }
+    }
+
+    // Read payload from stream
+    uint8_t* payload = new (std::nothrow) uint8_t[frameHeader.payloadSize];
+    if (!payload) {
+        return false;
+    }
+    if (_stream->readBytes(reinterpret_cast<char*>(payload), frameHeader.payloadSize) != frameHeader.payloadSize) {
+        delete[] payload;
+        return false;
+    }
+
+    bool success = false;
+    if (frameHeader.frameType == 1) { // P-Frame
+        // For P-Frames, we decompress the delta into a temporary buffer
+        uint8_t* tempFrame = new (std::nothrow) uint8_t[_frameBufferSize];
+        if (!tempFrame) {
+            delete[] payload;
+            return false;
+        }
+
+        if (decompressPayload(payload, frameHeader.payloadSize, tempFrame, _frameBufferSize, frameHeader.frameFlags, frameHeader.frameType)) {
+            applyInversePrediction(tempFrame, _frameBufferSize, frameHeader.predictionMethod);
+            // XOR with the previous frame to reconstruct the current frame
+            for (size_t i = 0; i < _frameBufferSize; ++i) {
+                buffer[i] = _previousFrame[i] ^ tempFrame[i];
+            }
+            success = true;
+        }
+        delete[] tempFrame;
+    } else { // I-Frame
+        // For I-Frames, we decompress directly into the output buffer
+        if (decompressPayload(payload, frameHeader.payloadSize, buffer, bufferSize, frameHeader.frameFlags, frameHeader.frameType)) {
+            applyInversePrediction(buffer, bufferSize, frameHeader.predictionMethod);
+            success = true;
+        }
+    }
+
+    delete[] payload;
+
+    if (success) {
+        // Save the current frame for the next P-Frame
+        memcpy(_previousFrame, buffer, _frameBufferSize);
+    }
+
+    return success;
+}
+
+uint16_t Tmg1Decoder::getWidth() const {
+    return _fileHeader.width;
+}
+
+uint16_t Tmg1Decoder::getHeight() const {
+    return _fileHeader.height;
+}
+
+Tmg1DecoderError Tmg1Decoder::readFileHeader() {
+    size_t readSize = _stream->readBytes(reinterpret_cast<char*>(&_fileHeader), sizeof(_fileHeader));
+    if (readSize != sizeof(_fileHeader)) {
+        return Tmg1DecoderError::ReadError;
+    }
+
+    // シグネチャ 'TMG1' はリトルエンディアンでは 0x31474D54
+    if (_fileHeader.signature != 0x31474D54) {
+        return Tmg1DecoderError::InvalidSignature;
+    }
+
+    if (_fileHeader.version != 1) {
+        return Tmg1DecoderError::InvalidVersion;
+    }
+
+    return Tmg1DecoderError::None;
+}
+
+Tmg1DecoderError Tmg1Decoder::readFrameHeader(Tmg1FrameHeader& header) {
+    if (_stream->readBytes(reinterpret_cast<char*>(&header.frameType), 1) != 1) {
+        return Tmg1DecoderError::ReadError;
+    }
+
+    Tmg1DecoderError err;
+    err = readUleb128(header.ptsDelta);
+    if (err != Tmg1DecoderError::None) {
+        return err;
+    }
+
+    err = readUleb128(header.payloadSize);
+    if (err != Tmg1DecoderError::None) {
+        return err;
+    }
+
+    if (_stream->readBytes(reinterpret_cast<char*>(&header.frameFlags), 1) != 1) {
+        return Tmg1DecoderError::ReadError;
+    }
+
+    if (_stream->readBytes(reinterpret_cast<char*>(&header.predictionMethod), 1) != 1) {
+        return Tmg1DecoderError::ReadError;
+    }
+
+    return Tmg1DecoderError::None;
+}
+
+Tmg1DecoderError Tmg1Decoder::readUleb128(uint32_t& value) {
+    value = 0;
+    uint8_t shift = 0;
+    uint8_t byte;
+    while (shift < 35) { // 5 bytes * 7 bits = 35 bits
+        if (_stream->readBytes(reinterpret_cast<char*>(&byte), 1) != 1) {
+            return Tmg1DecoderError::ReadError;
+        }
+        value |= (uint32_t)(byte & 0x7F) << shift;
+        if ((byte & 0x80) == 0) {
+            return Tmg1DecoderError::None;
+        }
+        shift += 7;
+    }
+    // ULEB128 for uint32_t should not exceed 5 bytes.
+    // This indicates malformed data.
+    return Tmg1DecoderError::ReadError;
+}
+
+bool Tmg1Decoder::decompressPayload(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType) {
+    bool isRangeCoder = (_fileHeader.flags & 0x04) != 0;
+
+    if (isRangeCoder) {
+        // TODO: Implement Range Coder decompression
+        printf("DEBUG: Range Coder is not implemented.\n");
+        return false; // Not implemented yet
+    } else {
+        return decompressPayloadRice(src, srcSize, dest, destSize, frameFlags, frameType);
+    }
+}
+
+bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType) {
+    printf("\n--- Decompressing Rice Payload ---\n");
+    printf("DEBUG: srcSize=%zu, destSize=%zu, frameFlags=0x%02X, frameType=%d\n", srcSize, destSize, frameFlags, frameType);
+
+    bool msbFirst = (_fileHeader.flags & 0x01) != 0;
+    RiceBitReader reader(src, srcSize, msbFirst);
+
+    bool hasStartBit = (frameFlags & 0x01) != 0;
+    bool perLineK = (frameFlags & 0x02) != 0;
+    bool perFrameK = (frameFlags & 0x04) != 0;
+    printf("DEBUG: msbFirst=%d, hasStartBit=%d, perLineK=%d, perFrameK=%d\n", msbFirst, hasStartBit, perLineK, perFrameK);
+
+
+    int frameK = 1; // Default K for fixed mode
+    if (perFrameK) {
+        uint32_t k_val = reader.readBits(3);
+        if (k_val == 0xFFFFFFFF) {
+            printf("ERROR: Failed to read per-frame K.\n");
+            return false;
+        }
+        frameK = k_val;
+    }
+    printf("DEBUG: Frame K = %d\n", frameK);
+
+
+    uint16_t width = getWidth();
+    uint16_t height = getHeight();
+    size_t bytesPerLine = (width + 7) / 8;
+
+    // The destination buffer (tempFrame for P-frames, output buffer for I-frames)
+    // should be zero-filled. For P-frames, unchanged lines will result in a zero-delta.
+    // For I-frames, this represents a black background to draw on.
+    memset(dest, 0, destSize);
+
+    for (uint16_t y = 0; y < height; ++y) {
+        printf("DEBUG: y=%d\n", y);
+        
+        int lineType = reader.readBit();
+        if (lineType == -1) {
+            printf("ERROR: Unexpected end of stream when reading lineType at y=%d.\n", y);
+            return false;
+        }
+        printf("DEBUG: lineType=%d\n", lineType);
+
+        if (lineType == 0) {
+            // Line is unchanged (P-Frame) or Empty/Black (I-Frame).
+            // For P-Frames, buffer contains previous frame data if we are doing delta.
+            // But wait, decompressPayloadRice writes to 'dest'.
+            // For P-Frames, 'dest' is 'tempFrame', initialized to 0.
+            // If lineType is 0, tempFrame remains 0 for this line.
+            // XORing 0 with previous frame results in no change. Correct.
+            // For I-Frames, 'dest' is output buffer, initialized to 0.
+            // If lineType is 0, it remains black. Correct.
+            continue;
+        }
+
+        int currentBit = 0;
+        if (hasStartBit) {
+            int bit = reader.readBit();
+            if (bit == -1) {
+                printf("ERROR: Unexpected end of stream when reading start bit at y=%d.\n", y);
+                return false;
+            }
+            currentBit = bit;
+        }
+        printf("DEBUG: y=%d, startBit=%d\n", y, currentBit);
+
+        int lineK = frameK;
+        if (perLineK) {
+            uint32_t k_val = reader.readBits(3);
+            if (k_val == 0xFFFFFFFF) {
+                printf("ERROR: Failed to read per-line K at y=%d.\n", y);
+                return false;
+            }
+            lineK = k_val;
+        }
+
+        uint16_t bitsWrittenInLine = 0;
+        while (bitsWrittenInLine < width) {
+            if (reader.isEndOfStream()) {
+                // End of stream is acceptable if the rest of the line is blank (currentBit == 0)
+                if(currentBit == 1) {
+                    printf("ERROR: Stream ended unexpectedly on a white run at y=%d, bit %d.\n", y, bitsWrittenInLine);
+                    return false;
+                }
+                break;
+            }
+            
+            uint32_t runLength = reader.readSymbol(lineK);
+            if (runLength == 0xFFFFFFFF) {
+                printf("ERROR: Failed to read symbol at y=%d, bit %d.\n", y, bitsWrittenInLine);
+                return false;
+            }
+            
+            printf("DEBUG: y=%d, bit=%d, currentBit=%d, k=%d, runLength=%u\n", y, bitsWrittenInLine, currentBit, lineK, runLength);
+            
+            if (runLength == 0) {
+                 currentBit = 1 - currentBit;
+                 continue; 
+            }
+
+            if (currentBit == 1) {
+                for (uint32_t i = 0; i < runLength && bitsWrittenInLine < width; ++i) {
+                    size_t byte_idx = y * bytesPerLine + (bitsWrittenInLine / 8);
+                    uint8_t bit_idx = bitsWrittenInLine % 8;
+
+                    if (msbFirst) {
+                        dest[byte_idx] |= (1 << (7 - bit_idx));
+                    } else {
+                        dest[byte_idx] |= (1 << bit_idx);
+                    }
+                    bitsWrittenInLine++;
+                }
+            } else {
+                bitsWrittenInLine += runLength;
+            }
+            
+            if (bitsWrittenInLine > width) {
+                // This can happen if the last run overflows. Just cap it.
+                bitsWrittenInLine = width;
+            }
+
+            currentBit = 1 - currentBit; // Flip bit for next run
+        }
+    }
+    // printf("DEBUG: Loop finished. byteIndex=%zu, bitIndex=%d, srcSize=%zu\n", reader._byteIndex, reader._bitIndex, srcSize); // Commented out to prevent accessing private members
+    printf("--- Decompression Finished Successfully ---\n");
+    return true;
+}
+
+void Tmg1Decoder::applyInversePrediction(uint8_t* buffer, size_t bufferSize, uint8_t predictionMethod) {
+    if (predictionMethod == 0) { // None
+        return;
+    }
+
+    uint16_t width = getWidth();
+    uint16_t height = getHeight();
+    // 1bpp なので、1ラインあたりのバイト数を計算
+    size_t bytesPerLine = (width + 7) / 8;
+
+    if (predictionMethod == 1) { // Left
+        for (uint16_t y = 0; y < height; ++y) {
+            uint8_t* line = buffer + y * bytesPerLine;
+            for (size_t i = 1; i < bytesPerLine; ++i) {
+                line[i] ^= line[i - 1];
+            }
+        }
+    } else if (predictionMethod == 2) { // Up
+        for (uint16_t y = 1; y < height; ++y) {
+            uint8_t* currentLine = buffer + y * bytesPerLine;
+            uint8_t* upperLine = buffer + (y - 1) * bytesPerLine;
+            for (size_t i = 0; i < bytesPerLine; ++i) {
+                currentLine[i] ^= upperLine[i];
+            }
+        }
+    }
+}

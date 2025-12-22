@@ -1,0 +1,13 @@
+stages:
+  - test
+
+test_native:
+  stage: test
+  image: python:3.9
+  
+  before_script:
+    - apt-get update && apt-get install -y g++
+    - pip install platformio
+    
+  script:
+    - pio test -e native
