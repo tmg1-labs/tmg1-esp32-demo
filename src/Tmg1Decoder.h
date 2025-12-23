@@ -49,6 +49,7 @@ protected:
 
     bool decompressPayload(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType);
     bool decompressPayloadRice(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType);
+    bool decompressPayloadRange(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType);
     void applyInversePrediction(uint8_t* buffer, size_t bufferSize, uint8_t predictionMethod);
 
     Stream* _stream = nullptr;

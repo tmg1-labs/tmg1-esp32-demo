@@ -1,4 +1,5 @@
 #include "Tmg1Decoder.h"
+#include "RangeDecoder.h"
 #include <new>
 #include <stdio.h> // For printf debugging
 
@@ -187,12 +188,50 @@ bool Tmg1Decoder::decompressPayload(const uint8_t* src, size_t srcSize, uint8_t*
     bool isRangeCoder = (_fileHeader.flags & 0x04) != 0;
 
     if (isRangeCoder) {
-        // TODO: Implement Range Coder decompression
-        printf("DEBUG: Range Coder is not implemented.\n");
-        return false; // Not implemented yet
+        return decompressPayloadRange(src, srcSize, dest, destSize, frameFlags, frameType);
     } else {
         return decompressPayloadRice(src, srcSize, dest, destSize, frameFlags, frameType);
     }
+}
+
+bool Tmg1Decoder::decompressPayloadRange(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType) {
+    FrequencyModel model(2, 2);
+    RangeDecoder reader(src, srcSize, model);
+    
+    uint16_t width = getWidth();
+    uint16_t height = getHeight();
+    size_t bytesPerLine = (width + 7) / 8;
+    bool msbFirst = (_fileHeader.flags & 0x01) != 0;
+
+    memset(dest, 0, destSize);
+
+    for (uint16_t y = 0; y < height; ++y) {
+        if (reader.isEndOfStream()) break;
+        
+        int lineType = reader.readBit();
+        if (lineType == 0) {
+            continue;
+        }
+
+        for (uint16_t bitsDecoded = 0; bitsDecoded < width; ++bitsDecoded) {
+            // Check for end of stream within line just in case
+            if (reader.isEndOfStream()) break;
+            
+            int bit = reader.readBit();
+            
+            if (bit == 1) {
+                size_t byteIndex = y * bytesPerLine + (bitsDecoded / 8);
+                uint8_t bitInByte;
+                if (msbFirst) {
+                    bitInByte = 7 - (bitsDecoded % 8);
+                } else {
+                    bitInByte = bitsDecoded % 8;
+                }
+                dest[byteIndex] |= (1 << bitInByte);
+            }
+        }
+    }
+    return true;
 }
 
 bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType) {
