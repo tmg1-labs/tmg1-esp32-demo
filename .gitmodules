@@ -1,0 +1,3 @@
+[submodule "docs/specification"]
+	path = docs/specification
+	url = https://gitlab.com/seizu/tsumugi/gitlab-profile.git
