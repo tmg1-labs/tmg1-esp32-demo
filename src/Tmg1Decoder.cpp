@@ -8,6 +8,7 @@ Tmg1Decoder::Tmg1Decoder() {
     _previousFrame = nullptr;
     _stream = nullptr;
     _frameBufferSize = 0;
+    _lastPtsDelta = 0;
 }
 
 Tmg1Decoder::~Tmg1Decoder() {
@@ -49,6 +50,7 @@ bool Tmg1Decoder::decodeFrame(uint8_t* buffer, size_t bufferSize) {
     if (err != Tmg1DecoderError::None) {
         return false;
     }
+    _lastPtsDelta = frameHeader.ptsDelta;
 
     // Handle empty payload (e.g., unchanged P-frame)
     if (frameHeader.payloadSize == 0) {
@@ -118,6 +120,18 @@ uint16_t Tmg1Decoder::getWidth() const {
 
 uint16_t Tmg1Decoder::getHeight() const {
     return _fileHeader.height;
+}
+
+uint16_t Tmg1Decoder::getTimebaseNum() const {
+    return _fileHeader.timebaseNum;
+}
+
+uint16_t Tmg1Decoder::getTimebaseDen() const {
+    return _fileHeader.timebaseDen;
+}
+
+uint32_t Tmg1Decoder::getLastPtsDelta() const {
+    return _lastPtsDelta;
 }
 
 Tmg1DecoderError Tmg1Decoder::readFileHeader() {

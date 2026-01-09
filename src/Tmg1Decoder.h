@@ -41,6 +41,9 @@ public:
     
     uint16_t getWidth() const;
     uint16_t getHeight() const;
+    uint16_t getTimebaseNum() const;
+    uint16_t getTimebaseDen() const;
+    uint32_t getLastPtsDelta() const;
 
 protected:
     Tmg1DecoderError readFileHeader();
@@ -56,4 +59,5 @@ protected:
     Tmg1FileHeader _fileHeader;
     uint8_t* _previousFrame = nullptr;
     size_t _frameBufferSize = 0;
+    uint32_t _lastPtsDelta = 0;
 };
