@@ -249,8 +249,8 @@ bool Tmg1Decoder::decompressPayloadRange(const uint8_t* src, size_t srcSize, uin
 }
 
 bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType) {
-    printf("\n--- Decompressing Rice Payload ---\n");
-    printf("DEBUG: srcSize=%zu, destSize=%zu, frameFlags=0x%02X, frameType=%d\n", srcSize, destSize, frameFlags, frameType);
+    // printf("\n--- Decompressing Rice Payload ---\n");
+    // printf("DEBUG: srcSize=%zu, destSize=%zu, frameFlags=0x%02X, frameType=%d\n", srcSize, destSize, frameFlags, frameType);
 
     bool msbFirst = (_fileHeader.flags & 0x01) != 0;
     RiceBitReader reader(src, srcSize, msbFirst);
@@ -258,7 +258,7 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
     bool hasStartBit = (frameFlags & 0x01) != 0;
     bool perLineK = (frameFlags & 0x02) != 0;
     bool perFrameK = (frameFlags & 0x04) != 0;
-    printf("DEBUG: msbFirst=%d, hasStartBit=%d, perLineK=%d, perFrameK=%d\n", msbFirst, hasStartBit, perLineK, perFrameK);
+    // printf("DEBUG: msbFirst=%d, hasStartBit=%d, perLineK=%d, perFrameK=%d\n", msbFirst, hasStartBit, perLineK, perFrameK);
 
 
     int frameK = 1; // Default K for fixed mode
@@ -270,7 +270,7 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
         }
         frameK = k_val;
     }
-    printf("DEBUG: Frame K = %d\n", frameK);
+    // printf("DEBUG: Frame K = %d\n", frameK);
 
 
     uint16_t width = getWidth();
@@ -283,14 +283,14 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
     memset(dest, 0, destSize);
 
     for (uint16_t y = 0; y < height; ++y) {
-        printf("DEBUG: y=%d\n", y);
+        // printf("DEBUG: y=%d\n", y);
         
         int lineType = reader.readBit();
         if (lineType == -1) {
             printf("ERROR: Unexpected end of stream when reading lineType at y=%d.\n", y);
             return false;
         }
-        printf("DEBUG: lineType=%d\n", lineType);
+        // printf("DEBUG: lineType=%d\n", lineType);
 
         if (lineType == 0) {
             // Line is unchanged (P-Frame) or Empty/Black (I-Frame).
@@ -313,7 +313,7 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
             }
             currentBit = bit;
         }
-        printf("DEBUG: y=%d, startBit=%d\n", y, currentBit);
+        // printf("DEBUG: y=%d, startBit=%d\n", y, currentBit);
 
         int lineK = frameK;
         if (perLineK) {
@@ -342,7 +342,7 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
                 return false;
             }
             
-            printf("DEBUG: y=%d, bit=%d, currentBit=%d, k=%d, runLength=%u\n", y, bitsWrittenInLine, currentBit, lineK, runLength);
+            // printf("DEBUG: y=%d, bit=%d, currentBit=%d, k=%d, runLength=%u\n", y, bitsWrittenInLine, currentBit, lineK, runLength);
             
             if (runLength == 0) {
                  currentBit = 1 - currentBit;
@@ -353,12 +353,7 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
                 for (uint32_t i = 0; i < runLength && bitsWrittenInLine < width; ++i) {
                     size_t byte_idx = y * bytesPerLine + (bitsWrittenInLine / 8);
                     uint8_t bit_idx = bitsWrittenInLine % 8;
-
-                    if (msbFirst) {
-                        dest[byte_idx] |= (1 << (7 - bit_idx));
-                    } else {
-                        dest[byte_idx] |= (1 << bit_idx);
-                    }
+                    dest[byte_idx] |= (1 << bit_idx);
                     bitsWrittenInLine++;
                 }
             } else {
@@ -372,9 +367,13 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
 
             currentBit = 1 - currentBit; // Flip bit for next run
         }
+        // If hasStartBit is false, the next line should start with black (0)
+        if (!hasStartBit) {
+            currentBit = 0;
+        }
     }
     // printf("DEBUG: Loop finished. byteIndex=%zu, bitIndex=%d, srcSize=%zu\n", reader._byteIndex, reader._bitIndex, srcSize); // Commented out to prevent accessing private members
-    printf("--- Decompression Finished Successfully ---\n");
+    // printf("--- Decompression Finished Successfully ---\n");
     return true;
 }
 
