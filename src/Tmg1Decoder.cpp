@@ -1,19 +1,25 @@
 #include "Tmg1Decoder.h"
 #include "RangeDecoder.h"
+#include "RiceBitReader.h"
 #include <new>
 #include <stdio.h> // For printf debugging
 
-Tmg1Decoder::Tmg1Decoder() {
+Tmg1Decoder::Tmg1Decoder() : _rangeModel(2, 2) {
     memset(&_fileHeader, 0, sizeof(_fileHeader));
     _previousFrame = nullptr;
+    _tempFrame = nullptr;
     _stream = nullptr;
     _frameBufferSize = 0;
+    _tempFrameSize = 0;
     _lastPtsDelta = 0;
 }
 
 Tmg1Decoder::~Tmg1Decoder() {
     if (_previousFrame) {
         delete[] _previousFrame;
+    }
+    if (_tempFrame) {
+        delete[] _tempFrame;
     }
 }
 
@@ -30,15 +36,27 @@ bool Tmg1Decoder::begin(Stream& stream) {
         _frameBufferSize /= 8;
     }
     
-    _previousFrame = new (std::nothrow) uint8_t[_frameBufferSize];
+    // Allocate buffers if not already allocated or if size changed (though video size shouldn't change mid-stream)
+    if (!_previousFrame) {
+        _previousFrame = new (std::nothrow) uint8_t[_frameBufferSize];
+    }
     if (!_previousFrame) {
         return false;
     }
     
+    if (!_tempFrame) {
+        _tempFrame = new (std::nothrow) uint8_t[_frameBufferSize];
+        _tempFrameSize = _frameBufferSize;
+    }
+    if (!_tempFrame) {
+        return false;
+    }
+
+    // Reset range model just in case, though it's reset per frame usage usually
+    _rangeModel.reset();
+    
     return true;
 }
-
-#include "RiceBitReader.h" // Add this include
 
 bool Tmg1Decoder::decodeFrame(uint8_t* buffer, size_t bufferSize) {
     if (bufferSize < _frameBufferSize) {
@@ -68,43 +86,39 @@ bool Tmg1Decoder::decodeFrame(uint8_t* buffer, size_t bufferSize) {
         }
     }
 
-    // Read payload from stream
-    uint8_t* payload = new (std::nothrow) uint8_t[frameHeader.payloadSize];
-    if (!payload) {
-        return false;
+    // Read payload from stream into reusable buffer
+    if (_payloadBuffer.size() < frameHeader.payloadSize) {
+        _payloadBuffer.resize(frameHeader.payloadSize);
     }
-    if (_stream->readBytes(reinterpret_cast<char*>(payload), frameHeader.payloadSize) != frameHeader.payloadSize) {
-        delete[] payload;
+    
+    if (_stream->readBytes(reinterpret_cast<char*>(_payloadBuffer.data()), frameHeader.payloadSize) != frameHeader.payloadSize) {
         return false;
     }
 
     bool success = false;
     if (frameHeader.frameType == 1) { // P-Frame
         // For P-Frames, we decompress the delta into a temporary buffer
-        uint8_t* tempFrame = new (std::nothrow) uint8_t[_frameBufferSize];
-        if (!tempFrame) {
-            delete[] payload;
-            return false;
+        // Use pre-allocated _tempFrame
+        if (!_tempFrame || _tempFrameSize < _frameBufferSize) {
+             // Should have been allocated in begin, but safety check
+             return false;
         }
 
-        if (decompressPayload(payload, frameHeader.payloadSize, tempFrame, _frameBufferSize, frameHeader.frameFlags, frameHeader.frameType)) {
-            applyInversePrediction(tempFrame, _frameBufferSize, frameHeader.predictionMethod);
+        if (decompressPayload(_payloadBuffer.data(), frameHeader.payloadSize, _tempFrame, _frameBufferSize, frameHeader.frameFlags, frameHeader.frameType)) {
+            applyInversePrediction(_tempFrame, _frameBufferSize, frameHeader.predictionMethod);
             // XOR with the previous frame to reconstruct the current frame
             for (size_t i = 0; i < _frameBufferSize; ++i) {
-                buffer[i] = _previousFrame[i] ^ tempFrame[i];
+                buffer[i] = _previousFrame[i] ^ _tempFrame[i];
             }
             success = true;
         }
-        delete[] tempFrame;
     } else { // I-Frame
         // For I-Frames, we decompress directly into the output buffer
-        if (decompressPayload(payload, frameHeader.payloadSize, buffer, bufferSize, frameHeader.frameFlags, frameHeader.frameType)) {
+        if (decompressPayload(_payloadBuffer.data(), frameHeader.payloadSize, buffer, bufferSize, frameHeader.frameFlags, frameHeader.frameType)) {
             applyInversePrediction(buffer, bufferSize, frameHeader.predictionMethod);
             success = true;
         }
     }
-
-    delete[] payload;
 
     if (success) {
         // Save the current frame for the next P-Frame
@@ -220,8 +234,9 @@ bool Tmg1Decoder::decompressPayload(const uint8_t* src, size_t srcSize, uint8_t*
 }
 
 bool Tmg1Decoder::decompressPayloadRange(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType) {
-    FrequencyModel model(2, 2);
-    RangeDecoder reader(src, srcSize, model);
+    // Reuse existing model
+    _rangeModel.reset(); 
+    RangeDecoder reader(src, srcSize, _rangeModel);
     
     uint16_t width = getWidth();
     uint16_t height = getHeight();
@@ -260,17 +275,13 @@ bool Tmg1Decoder::decompressPayloadRange(const uint8_t* src, size_t srcSize, uin
 }
 
 bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags, uint8_t frameType) {
-    // printf("\n--- Decompressing Rice Payload ---\n");
-    // printf("DEBUG: srcSize=%zu, destSize=%zu, frameFlags=0x%02X, frameType=%d\n", srcSize, destSize, frameFlags, frameType);
-
+    // Rice decompression logic (unchanged)
     bool msbFirst = (_fileHeader.flags & 0x01) != 0;
     RiceBitReader reader(src, srcSize, msbFirst);
 
     bool hasStartBit = (frameFlags & 0x01) != 0;
     bool perLineK = (frameFlags & 0x02) != 0;
     bool perFrameK = (frameFlags & 0x04) != 0;
-    // printf("DEBUG: msbFirst=%d, hasStartBit=%d, perLineK=%d, perFrameK=%d\n", msbFirst, hasStartBit, perLineK, perFrameK);
-
 
     int frameK = 1; // Default K for fixed mode
     if (perFrameK) {
@@ -281,37 +292,21 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
         }
         frameK = k_val;
     }
-    // printf("DEBUG: Frame K = %d\n", frameK);
-
 
     uint16_t width = getWidth();
     uint16_t height = getHeight();
     size_t bytesPerLine = (width + 7) / 8;
 
-    // The destination buffer (tempFrame for P-frames, output buffer for I-frames)
-    // should be zero-filled. For P-frames, unchanged lines will result in a zero-delta.
-    // For I-frames, this represents a black background to draw on.
     memset(dest, 0, destSize);
 
     for (uint16_t y = 0; y < height; ++y) {
-        // printf("DEBUG: y=%d\n", y);
-        
         int lineType = reader.readBit();
         if (lineType == -1) {
             printf("ERROR: Unexpected end of stream when reading lineType at y=%d.\n", y);
             return false;
         }
-        // printf("DEBUG: lineType=%d\n", lineType);
 
         if (lineType == 0) {
-            // Line is unchanged (P-Frame) or Empty/Black (I-Frame).
-            // For P-Frames, buffer contains previous frame data if we are doing delta.
-            // But wait, decompressPayloadRice writes to 'dest'.
-            // For P-Frames, 'dest' is 'tempFrame', initialized to 0.
-            // If lineType is 0, tempFrame remains 0 for this line.
-            // XORing 0 with previous frame results in no change. Correct.
-            // For I-Frames, 'dest' is output buffer, initialized to 0.
-            // If lineType is 0, it remains black. Correct.
             continue;
         }
 
@@ -324,7 +319,6 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
             }
             currentBit = bit;
         }
-        // printf("DEBUG: y=%d, startBit=%d\n", y, currentBit);
 
         int lineK = frameK;
         if (perLineK) {
@@ -339,7 +333,6 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
         uint16_t bitsWrittenInLine = 0;
         while (bitsWrittenInLine < width) {
             if (reader.isEndOfStream()) {
-                // End of stream is acceptable if the rest of the line is blank (currentBit == 0)
                 if(currentBit == 1) {
                     printf("ERROR: Stream ended unexpectedly on a white run at y=%d, bit %d.\n", y, bitsWrittenInLine);
                     return false;
@@ -352,8 +345,6 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
                 printf("ERROR: Failed to read symbol at y=%d, bit %d.\n", y, bitsWrittenInLine);
                 return false;
             }
-            
-            // printf("DEBUG: y=%d, bit=%d, currentBit=%d, k=%d, runLength=%u\n", y, bitsWrittenInLine, currentBit, lineK, runLength);
             
             if (runLength == 0) {
                  currentBit = 1 - currentBit;
@@ -372,19 +363,15 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
             }
             
             if (bitsWrittenInLine > width) {
-                // This can happen if the last run overflows. Just cap it.
                 bitsWrittenInLine = width;
             }
 
-            currentBit = 1 - currentBit; // Flip bit for next run
+            currentBit = 1 - currentBit; 
         }
-        // If hasStartBit is false, the next line should start with black (0)
         if (!hasStartBit) {
             currentBit = 0;
         }
     }
-    // printf("DEBUG: Loop finished. byteIndex=%zu, bitIndex=%d, srcSize=%zu\n", reader._byteIndex, reader._bitIndex, srcSize); // Commented out to prevent accessing private members
-    // printf("--- Decompression Finished Successfully ---\n");
     return true;
 }
 
@@ -395,7 +382,6 @@ void Tmg1Decoder::applyInversePrediction(uint8_t* buffer, size_t bufferSize, uin
 
     uint16_t width = getWidth();
     uint16_t height = getHeight();
-    // 1bpp なので、1ラインあたりのバイト数を計算
     size_t bytesPerLine = (width + 7) / 8;
 
     if (predictionMethod == 1) { // Left

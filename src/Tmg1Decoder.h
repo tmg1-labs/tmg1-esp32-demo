@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
+#include <vector>
+#include "FrequencyModel.h"
 
 // エラーコード
 enum class Tmg1DecoderError {
@@ -60,4 +62,10 @@ protected:
     uint8_t* _previousFrame = nullptr;
     size_t _frameBufferSize = 0;
     uint32_t _lastPtsDelta = 0;
+
+    // Reusable buffers and models
+    std::vector<uint8_t> _payloadBuffer;
+    uint8_t* _tempFrame = nullptr; // For P-Frame delta decompression
+    size_t _tempFrameSize = 0;
+    FrequencyModel _rangeModel; // Reused frequency model
 };
