@@ -66,6 +66,22 @@ public:
         }
     }
 
+    // Optimized for Binary (0/1) models
+    inline uint32_t getZeroFrequency(uint32_t context) const {
+        // Assume maxSymbols is 2. Frequency of 0 is at index 0.
+        return _frequencies[context * _maxSymbols];
+    }
+
+    inline void updateBinary(uint32_t symbol, uint32_t context) {
+        // Optimized update for binary models (no loop for total check if we trust caller, but let's keep rescale logic)
+        size_t idx = context * _maxSymbols + symbol;
+        _frequencies[idx]++;
+        _totals[context]++;
+        if (_totals[context] > (1 << 20)) {
+            rescale(context);
+        }
+    }
+
     inline void reset() {
         for (uint32_t i = 0; i < _numContexts; ++i) {
             _totals[i] = 0;

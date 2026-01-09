@@ -193,7 +193,68 @@ public:
     }
     
     inline int readBit() {
-        return (int)readSymbol();
+        // Optimized Binary Range Decoder (Specialized for 0/1)
+        uint32_t context = _context;
+        uint32_t total = _model.getTotalFrequencies(context);
+        
+        // --- Calculate Scaled Code (Same as readSymbol) ---
+        uint64_t diff64 = _code - _low + 1;
+        uint128_val prod = mul64(diff64, (uint64_t)total);
+        prod = sub128(prod, 1);
+        uint64_t scaledCode64 = div128by64(prod, _range);
+        uint32_t scaledCode = (uint32_t)scaledCode64;
+        if (scaledCode >= total) scaledCode = total - 1;
+
+        // --- Determine Symbol (Binary Optimization) ---
+        // We don't need a loop or binary search.
+        // If scaledCode < freq(0), then symbol is 0. Else 1.
+        uint32_t freq0 = _model.getZeroFrequency(context);
+        
+        uint32_t symbol;
+        uint32_t symbolFreq;
+        uint32_t cumulative;
+
+        if (scaledCode < freq0) {
+            symbol = 0;
+            symbolFreq = freq0;
+            cumulative = 0;
+        } else {
+            symbol = 1;
+            symbolFreq = total - freq0; // freq(1)
+            cumulative = freq0;
+        }
+
+        // --- Update Range (Same as readSymbol) ---
+        // Pre-calculate Quotient and Remainder of _range / total
+        uint64_t rQuot = _range / total;
+        uint64_t rRem = _range % total;
+
+        // Calculate newLow
+        uint128_val term1 = mul64x32(rQuot, cumulative);
+        uint64_t term2_val = ((uint64_t)cumulative * rRem) / total;
+        uint128_val newLow128 = add128(term1, {term2_val, 0});
+        newLow128 = add128(newLow128, {_low, 0});
+
+        // Calculate newRange
+        uint128_val rangeTerm1 = mul64x32(rQuot, symbolFreq);
+        uint64_t rangeTerm2_val = ((uint64_t)symbolFreq * rRem) / total;
+        uint128_val newRange128 = add128(rangeTerm1, {rangeTerm2_val, 0});
+        
+        uint64_t newRange64 = newRange128.lo; 
+        if (newRange64 == 0) newRange64 = 1;
+        
+        _low = newLow128.lo;
+        _range = newRange64;
+
+        // --- Model Update ---
+        _model.updateBinary(symbol, context);
+
+        if (_model.getNumContexts() > 1) {
+            _context = symbol;
+        }
+
+        normalize();
+        return (int)symbol;
     }
 
     inline uint32_t readBits(int count) {
