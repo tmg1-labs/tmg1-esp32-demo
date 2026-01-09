@@ -13,6 +13,7 @@ public:
     uint32_t readBits(int count);
     uint32_t readSymbol();
     bool isEndOfStream() const;
+    void setContext(uint32_t context);
 
 private:
     void normalize();

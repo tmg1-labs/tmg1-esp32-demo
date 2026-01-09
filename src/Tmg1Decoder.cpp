@@ -109,6 +109,17 @@ bool Tmg1Decoder::decodeFrame(uint8_t* buffer, size_t bufferSize) {
     if (success) {
         // Save the current frame for the next P-Frame
         memcpy(_previousFrame, buffer, _frameBufferSize);
+
+        // Convert from MSB-First (TMG1 Standard) to LSB-First (U8g2 XBM format)
+        // Only necessary if the display library expects LSB-First.
+        // U8g2 drawXBMP expects LSB-First (Bit 0 is left-most pixel).
+        for (size_t i = 0; i < bufferSize; ++i) {
+            uint8_t b = buffer[i];
+            b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+            b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+            b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+            buffer[i] = b;
+        }
     }
 
     return success;
