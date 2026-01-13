@@ -4,6 +4,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(ESP32)
+#include <Arduino.h>
+#else
+#ifndef IRAM_ATTR
+#define IRAM_ATTR
+#endif
+#endif
+
 #include "FrequencyModel.h"
 
 // --- Helper for 128-bit arithmetic on 32-bit platforms ---
@@ -14,7 +22,7 @@ struct uint128_val {
 };
 
 // 64x64 -> 128 multiplication
-static inline uint128_val mul64(uint64_t u, uint64_t v) {
+static inline uint128_val IRAM_ATTR mul64(uint64_t u, uint64_t v) {
   uint64_t u0 = u & 0xFFFFFFFF;
   uint64_t u1 = u >> 32;
   uint64_t v0 = v & 0xFFFFFFFF;
@@ -38,7 +46,7 @@ static inline uint128_val mul64(uint64_t u, uint64_t v) {
 }
 
 // 64x32 -> 128 multiplication (optimized)
-static inline uint128_val mul64x32(uint64_t u, uint32_t v) {
+static inline uint128_val IRAM_ATTR mul64x32(uint64_t u, uint32_t v) {
   uint64_t u0 = u & 0xFFFFFFFF;
   uint64_t u1 = u >> 32;
 
@@ -53,7 +61,7 @@ static inline uint128_val mul64x32(uint64_t u, uint32_t v) {
 
 // 128 / 64 division
 // Optimized using "Long Division" algorithm (Algorithm D logic) to avoid bit-wise loop.
-static inline uint64_t div128by64(uint128_val u, uint64_t v) {
+static inline uint64_t IRAM_ATTR div128by64(uint128_val u, uint64_t v) {
   if (v == 0) return 0;
 
   // Fast path: if divisor fits in 32 bits
@@ -104,7 +112,7 @@ static inline uint64_t div128by64(uint128_val u, uint64_t v) {
   uint64_t u3 = u_n.hi >> 32;
   uint64_t u2 = u_n.hi & 0xFFFFFFFF;
   uint64_t u1 = u_n.lo >> 32;
-  uint64_t u0 = u_n.lo & 0xFFFFFFFF;
+  // u0 unused for q1
 
   // We compute quotient in two 32-bit chunks: q1 (high), q0 (low)
 
@@ -161,8 +169,65 @@ static inline uint64_t div128by64(uint128_val u, uint64_t v) {
   return (q1 << 32) | q0;
 }
 
+// 128 / 64 division -> 32-bit result (optimized for result < 2^32)
+static inline uint32_t IRAM_ATTR div128by64_to_32(uint128_val u, uint64_t v) {
+  if (v == 0) return 0;
+
+  // Fast path: if divisor fits in 32 bits
+  if (v <= 0xFFFFFFFF) {
+    uint32_t v32 = (uint32_t)v;
+    uint64_t rem = 0;
+
+    rem = (rem << 32) | (u.hi >> 32);
+    rem %= v32;
+    rem = (rem << 32) | (u.hi & 0xFFFFFFFF);
+    rem %= v32;
+
+    rem = (rem << 32) | (u.lo >> 32);
+    rem %= v32;
+
+    rem = (rem << 32) | (u.lo & 0xFFFFFFFF);
+    return (uint32_t)(rem / v32);
+  }
+
+  // Fast path: if high part of dividend is 0, standard 64-bit division
+  if (u.hi == 0) {
+    return (uint32_t)(u.lo / v);
+  }
+
+  int s = __builtin_clzll(v);  // count leading zeros
+
+  uint64_t v_n = v << s;  // normalized divisor
+  uint64_t v_hi = v_n >> 32;
+  uint64_t v_lo = v_n & 0xFFFFFFFF;
+
+  // Shift u left by s to match v
+  uint128_val u_n;
+  if (s == 0) {
+    u_n = u;
+  } else {
+    u_n.hi = (u.hi << s) | (u.lo >> (64 - s));
+    u_n.lo = u.lo << s;
+  }
+
+  // We assume quotient < 2^32, so q1 is 0.
+  // Proceed directly to q0 calculation.
+
+  uint64_t q0_hat = ((u_n.hi << 32) | (u_n.lo >> 32)) / v_hi;
+  uint64_t r0_hat = ((u_n.hi << 32) | (u_n.lo >> 32)) - q0_hat * v_hi;
+
+  // Refine
+  while (q0_hat > 0xFFFFFFFF || (q0_hat * v_lo > ((r0_hat << 32) | (u_n.lo & 0xFFFFFFFF)))) {
+    q0_hat--;
+    r0_hat += v_hi;
+    if (r0_hat > 0xFFFFFFFF && (r0_hat & 0xFFFFFFFF00000000ULL)) break;
+  }
+  
+  return (uint32_t)q0_hat;
+}
+
 // 128-bit addition (a + b)
-static inline uint128_val add128(uint128_val a, uint128_val b) {
+static inline uint128_val IRAM_ATTR add128(uint128_val a, uint128_val b) {
   uint128_val res;
   res.lo = a.lo + b.lo;
   res.hi = a.hi + b.hi + (res.lo < a.lo ? 1 : 0);
@@ -170,7 +235,7 @@ static inline uint128_val add128(uint128_val a, uint128_val b) {
 }
 
 // 128-bit subtraction (a - b)
-static inline uint128_val sub128(uint128_val a, uint64_t b) {
+static inline uint128_val IRAM_ATTR sub128(uint128_val a, uint64_t b) {
   uint128_val res = a;
   if (res.lo < b) res.hi--;
   res.lo -= b;
@@ -198,17 +263,19 @@ class RangeDecoder {
     }
   }
 
-  inline int readBit() {
+  inline int IRAM_ATTR readBit() {
     // Optimized Binary Range Decoder (Specialized for 0/1)
     uint32_t context = _context;
     uint32_t total = _model.getTotalFrequencies(context);
 
     // --- Calculate Scaled Code (Same as readSymbol) ---
     uint64_t diff64 = _code - _low + 1;
-    uint128_val prod = mul64(diff64, (uint64_t)total);
+    // Optimize: use mul64x32 since total is uint32_t
+    uint128_val prod = mul64x32(diff64, total);
     prod = sub128(prod, 1);
-    uint64_t scaledCode64 = div128by64(prod, _range);
-    uint32_t scaledCode = (uint32_t)scaledCode64;
+    // Optimize: use div128by64_to_32 since result < total (uint32_t)
+    uint32_t scaledCode = div128by64_to_32(prod, _range);
+    
     if (scaledCode >= total) scaledCode = total - 1;
 
     // --- Determine Symbol (Binary Optimization) ---
@@ -271,7 +338,7 @@ class RangeDecoder {
     return value;
   }
 
-  inline uint32_t readSymbol() {
+  inline uint32_t IRAM_ATTR readSymbol() {
     uint32_t context = _context;
     uint32_t total = _model.getTotalFrequencies(context);
 
@@ -280,10 +347,11 @@ class RangeDecoder {
     // Calculate scaledCode first using full precision
     // scaledCode = ((_code - _low + 1) * total - 1) / _range
     uint64_t diff64 = _code - _low + 1;
-    uint128_val prod = mul64(diff64, (uint64_t)total);
+    // Optimize: mul64x32
+    uint128_val prod = mul64x32(diff64, total);
     prod = sub128(prod, 1);
-    uint64_t scaledCode64 = div128by64(prod, _range);
-    uint32_t scaledCode = (uint32_t)scaledCode64;
+    // Optimize: div128by64_to_32
+    uint32_t scaledCode = div128by64_to_32(prod, _range);
 
     if (scaledCode >= total) scaledCode = total - 1;
 
@@ -332,7 +400,7 @@ class RangeDecoder {
   inline void setContext(uint32_t context) { _context = context; }
 
  private:
-  inline void normalize() {
+  inline void IRAM_ATTR normalize() {
     while ((_low ^ (_low + _range)) < TopValue || _range < BottomValue) {
       _code = (_code << 8) | readByte();
       _low <<= 8;

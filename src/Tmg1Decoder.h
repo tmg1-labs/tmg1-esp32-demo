@@ -15,6 +15,7 @@ enum class Tmg1DecoderError {
 };
 
 // ファイルヘッダ
+#pragma pack(push, 1)
 struct Tmg1FileHeader {
   uint32_t signature;
   uint8_t version;
@@ -25,6 +26,7 @@ struct Tmg1FileHeader {
   uint16_t timebaseDen;
   uint16_t keyInterval;
 };
+#pragma pack(pop)
 
 // フレームヘッダ
 struct Tmg1FrameHeader {
@@ -42,6 +44,8 @@ class Tmg1Decoder {
 
   bool begin(Stream& stream);
   bool decodeFrame(uint8_t* buffer, size_t bufferSize);
+
+  void setReverseBitOrder(bool reverse);
 
   uint16_t getWidth() const;
   uint16_t getHeight() const;
@@ -61,12 +65,18 @@ class Tmg1Decoder {
   bool decompressPayloadRange(const uint8_t* src, size_t srcSize, uint8_t* dest, size_t destSize, uint8_t frameFlags,
                               uint8_t frameType);
   void applyInversePrediction(uint8_t* buffer, size_t bufferSize, uint8_t predictionMethod);
+  void applyBitReversal(uint8_t* buffer, size_t bufferSize);
 
   Stream* _stream = nullptr;
   Tmg1FileHeader _fileHeader;
   uint8_t* _previousFrame = nullptr;
   size_t _frameBufferSize = 0;
   uint32_t _lastPtsDelta = 0;
+  bool _reverseBitOrder = false;
+
+  static uint8_t _bitReverseTable[256];
+  static bool _isTableInitialized;
+  static void initBitReverseTable();
 
   // Reusable buffers and models
   std::vector<uint8_t> _payloadBuffer;

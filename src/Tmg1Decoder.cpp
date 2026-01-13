@@ -7,7 +7,13 @@
 #include "RangeDecoder.h"
 #include "RiceBitReader.h"
 
+uint8_t Tmg1Decoder::_bitReverseTable[256];
+bool Tmg1Decoder::_isTableInitialized = false;
+
 Tmg1Decoder::Tmg1Decoder() : _rangeModel(2, 2) {
+  if (!_isTableInitialized) {
+    initBitReverseTable();
+  }
   memset(&_fileHeader, 0, sizeof(_fileHeader));
   _previousFrame = nullptr;
   _tempFrame = nullptr;
@@ -82,11 +88,15 @@ bool Tmg1Decoder::decodeFrame(uint8_t* buffer, size_t bufferSize) {
       if (buffer != _previousFrame) {
         memcpy(buffer, _previousFrame, _frameBufferSize);
       }
+      if (_reverseBitOrder) {
+        applyBitReversal(buffer, _frameBufferSize);
+      }
       return true;
     } else {  // I-Frame
       // Empty I-Frame, fill with zeros (black)
       memset(buffer, 0, _frameBufferSize);
       memcpy(_previousFrame, buffer, _frameBufferSize);
+      // No need to reverse 0s
       return true;
     }
   }
@@ -131,9 +141,32 @@ bool Tmg1Decoder::decodeFrame(uint8_t* buffer, size_t bufferSize) {
   if (success) {
     // Save the current frame for the next P-Frame
     memcpy(_previousFrame, buffer, _frameBufferSize);
+
+    if (_reverseBitOrder) {
+      applyBitReversal(buffer, _frameBufferSize);
+    }
   }
 
   return success;
+}
+
+void Tmg1Decoder::setReverseBitOrder(bool reverse) { _reverseBitOrder = reverse; }
+
+void Tmg1Decoder::initBitReverseTable() {
+  for (int i = 0; i < 256; i++) {
+    uint8_t b = i;
+    b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+    b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+    _bitReverseTable[i] = b;
+  }
+  _isTableInitialized = true;
+}
+
+void Tmg1Decoder::applyBitReversal(uint8_t* buffer, size_t bufferSize) {
+  for (size_t i = 0; i < bufferSize; ++i) {
+    buffer[i] = _bitReverseTable[buffer[i]];
+  }
 }
 
 uint16_t Tmg1Decoder::getWidth() const { return _fileHeader.width; }
@@ -347,7 +380,12 @@ bool Tmg1Decoder::decompressPayloadRice(const uint8_t* src, size_t srcSize, uint
       if (currentBit == 1) {
         for (uint32_t i = 0; i < runLength && bitsWrittenInLine < width; ++i) {
           size_t byte_idx = y * bytesPerLine + (bitsWrittenInLine / 8);
-          uint8_t bit_idx = bitsWrittenInLine % 8;
+          uint8_t bit_idx;
+          if (msbFirst) {
+            bit_idx = 7 - (bitsWrittenInLine % 8);
+          } else {
+            bit_idx = bitsWrittenInLine % 8;
+          }
           dest[byte_idx] |= (1 << bit_idx);
           bitsWrittenInLine++;
         }
