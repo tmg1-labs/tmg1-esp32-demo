@@ -1,0 +1,437 @@
+{
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.claude\\settings.local.json": {
+    "mtime": 1780371012.053107,
+    "ast_hash": "04bb03680a7c2d92925e49954b99022d",
+    "semantic_hash": "04bb03680a7c2d92925e49954b99022d"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\.devcontainer\\devcontainer.json": {
+    "mtime": 1766337173.5774214,
+    "ast_hash": "089ff92dc3bd74b05db4499cb9da4a1c",
+    "semantic_hash": "089ff92dc3bd74b05db4499cb9da4a1c"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\Seizu.Tmg1.sln": {
+    "mtime": 1766337173.5829325,
+    "ast_hash": "468bd9618f0af71abc2bfb53c8d1f5f7",
+    "semantic_hash": "468bd9618f0af71abc2bfb53c8d1f5f7"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\Program.cs": {
+    "mtime": 1766423561.709235,
+    "ast_hash": "d5da06f11ca55efc9facc2a5d6a3318e",
+    "semantic_hash": "d5da06f11ca55efc9facc2a5d6a3318e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\Seizu.Tmg1.Cli.csproj": {
+    "mtime": 1766337173.5834358,
+    "ast_hash": "281a4571d6c207b42fcddf8a79cdd625",
+    "semantic_hash": "281a4571d6c207b42fcddf8a79cdd625"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\bin\\Debug\\net8.0\\Seizu.Tmg1.Cli.deps.json": {
+    "mtime": 1766423246.5249481,
+    "ast_hash": "7959d0a41ebedc097487217f7a3ab462",
+    "semantic_hash": "7959d0a41ebedc097487217f7a3ab462"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\bin\\Debug\\net8.0\\Seizu.Tmg1.Cli.runtimeconfig.json": {
+    "mtime": 1766423246.5542827,
+    "ast_hash": "9fcdf880f73e74cf6347f8194b9f3509",
+    "semantic_hash": "9fcdf880f73e74cf6347f8194b9f3509"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\obj\\Debug\\net8.0\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs": {
+    "mtime": 1766423244.126891,
+    "ast_hash": "9b225453b5a8008eefb62f6c5c66ce15",
+    "semantic_hash": "9b225453b5a8008eefb62f6c5c66ce15"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\obj\\Debug\\net8.0\\Seizu.Tmg1.Cli.AssemblyInfo.cs": {
+    "mtime": 1766423244.1417103,
+    "ast_hash": "0641099226674f2fb690d9bea0d487e5",
+    "semantic_hash": "0641099226674f2fb690d9bea0d487e5"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\obj\\Debug\\net8.0\\Seizu.Tmg1.Cli.GlobalUsings.g.cs": {
+    "mtime": 1766423243.6209843,
+    "ast_hash": "0ca42cbc4f22da0578a209aaeb544bf8",
+    "semantic_hash": "0ca42cbc4f22da0578a209aaeb544bf8"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\obj\\Debug\\net8.0\\Seizu.Tmg1.Cli.sourcelink.json": {
+    "mtime": 1766423244.165098,
+    "ast_hash": "e8de8fe3269d0219daacec8ea591219e",
+    "semantic_hash": "e8de8fe3269d0219daacec8ea591219e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\obj\\Seizu.Tmg1.Cli.csproj.nuget.dgspec.json": {
+    "mtime": 1766377645.8243527,
+    "ast_hash": "af34e91fd946715a361d9614f9e02aea",
+    "semantic_hash": "af34e91fd946715a361d9614f9e02aea"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\obj\\project.assets.json": {
+    "mtime": 1766377645.819814,
+    "ast_hash": "845f431efda737d2d00039323935f8aa",
+    "semantic_hash": "845f431efda737d2d00039323935f8aa"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\EncodeResult.cs": {
+    "mtime": 1766337173.584441,
+    "ast_hash": "7e94c61672ea410affc15009bcb72508",
+    "semantic_hash": "7e94c61672ea410affc15009bcb72508"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\EntropyCoderType.cs": {
+    "mtime": 1766337173.584441,
+    "ast_hash": "315f1b5d71011de1237bb4a94c3144c0",
+    "semantic_hash": "315f1b5d71011de1237bb4a94c3144c0"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\FrameType.cs": {
+    "mtime": 1766337173.584441,
+    "ast_hash": "f008bc748be2ccdb07dc12facc871a38",
+    "semantic_hash": "f008bc748be2ccdb07dc12facc871a38"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\FrequencyModel.cs": {
+    "mtime": 1766337173.5854406,
+    "ast_hash": "7e44e8c2f59926026c08bb259e4b58b5",
+    "semantic_hash": "7e44e8c2f59926026c08bb259e4b58b5"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\IBitplaneFrameReader.cs": {
+    "mtime": 1766337173.5854406,
+    "ast_hash": "f85cb6401d96abfbbe7458eefe6070d7",
+    "semantic_hash": "f85cb6401d96abfbbe7458eefe6070d7"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\IBitplaneFrameWriter.cs": {
+    "mtime": 1766337173.5854406,
+    "ast_hash": "91610a5ff10795dd80691233dbe91cf2",
+    "semantic_hash": "91610a5ff10795dd80691233dbe91cf2"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\IEntropyReader.cs": {
+    "mtime": 1766337173.5864406,
+    "ast_hash": "739a1b7cbfdf0fe5be47e12de9981d63",
+    "semantic_hash": "739a1b7cbfdf0fe5be47e12de9981d63"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\IEntropyWriter.cs": {
+    "mtime": 1766337173.5864406,
+    "ast_hash": "1ed36d409dd537c135387b097039bc8c",
+    "semantic_hash": "1ed36d409dd537c135387b097039bc8c"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\PayloadCompressor.cs": {
+    "mtime": 1766337173.5864406,
+    "ast_hash": "e18ce1c7a247bd80e86be2dbca8a8e07",
+    "semantic_hash": "e18ce1c7a247bd80e86be2dbca8a8e07"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\PredictionFilter.cs": {
+    "mtime": 1766337173.587441,
+    "ast_hash": "afff4ef993175a21235e4473e33be938",
+    "semantic_hash": "afff4ef993175a21235e4473e33be938"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\PredictionMethod.cs": {
+    "mtime": 1766337173.587441,
+    "ast_hash": "b7b15013a8f02d7f9884bc1e5e5010e2",
+    "semantic_hash": "b7b15013a8f02d7f9884bc1e5e5010e2"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\RangeDecoder.cs": {
+    "mtime": 1766337173.5880682,
+    "ast_hash": "b86a0d040af834ad3578835042a23bcb",
+    "semantic_hash": "b86a0d040af834ad3578835042a23bcb"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\RangeEncoder.cs": {
+    "mtime": 1766337173.588581,
+    "ast_hash": "2cb8b5c18540bad9cb6e23e28f907e13",
+    "semantic_hash": "2cb8b5c18540bad9cb6e23e28f907e13"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\RiceBitReader.cs": {
+    "mtime": 1766337173.588581,
+    "ast_hash": "211d2114d6d217f390a57609a9718f39",
+    "semantic_hash": "211d2114d6d217f390a57609a9718f39"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\RiceCoder.cs": {
+    "mtime": 1766337173.588581,
+    "ast_hash": "e4f165083766f73b5ca82f1ee25b67d9",
+    "semantic_hash": "e4f165083766f73b5ca82f1ee25b67d9"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\RiceParameterMode.cs": {
+    "mtime": 1766337173.588581,
+    "ast_hash": "356dc8a5c8968dad2c6d124e029d8bb6",
+    "semantic_hash": "356dc8a5c8968dad2c6d124e029d8bb6"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\Seizu.Tmg1.Core.csproj": {
+    "mtime": 1766337173.5895872,
+    "ast_hash": "f8e8e6b7bf97850818a02c0c97b5700f",
+    "semantic_hash": "f8e8e6b7bf97850818a02c0c97b5700f"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\Tmg1Decoder.cs": {
+    "mtime": 1766337173.5895872,
+    "ast_hash": "0c6b4d911ddfd59d46b6347ed5e78307",
+    "semantic_hash": "0c6b4d911ddfd59d46b6347ed5e78307"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\Tmg1Encoder.cs": {
+    "mtime": 1766337173.5895872,
+    "ast_hash": "a5cd4d87e97864369310b3b202aafd1f",
+    "semantic_hash": "a5cd4d87e97864369310b3b202aafd1f"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\Tmg1EncoderOptions.cs": {
+    "mtime": 1766337173.5905864,
+    "ast_hash": "73f14c1d4d1606b0db0c8bb27d232ee8",
+    "semantic_hash": "73f14c1d4d1606b0db0c8bb27d232ee8"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\Tmg1StreamWriter.cs": {
+    "mtime": 1766337173.5905864,
+    "ast_hash": "1571b7ce9f1876467044cf7c9c693057",
+    "semantic_hash": "1571b7ce9f1876467044cf7c9c693057"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\bin\\Debug\\net8.0\\Seizu.Tmg1.Core.deps.json": {
+    "mtime": 1766377647.8858523,
+    "ast_hash": "b73ab74d3c3af2266f0cb0efb51e5f51",
+    "semantic_hash": "b73ab74d3c3af2266f0cb0efb51e5f51"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\obj\\Debug\\net8.0\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs": {
+    "mtime": 1766377646.1272848,
+    "ast_hash": "9b225453b5a8008eefb62f6c5c66ce15",
+    "semantic_hash": "9b225453b5a8008eefb62f6c5c66ce15"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\obj\\Debug\\net8.0\\Seizu.Tmg1.Core.AssemblyInfo.cs": {
+    "mtime": 1766377646.2189753,
+    "ast_hash": "ace397357b79539909363a94e38930c1",
+    "semantic_hash": "ace397357b79539909363a94e38930c1"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\obj\\Debug\\net8.0\\Seizu.Tmg1.Core.GlobalUsings.g.cs": {
+    "mtime": 1766377646.0197012,
+    "ast_hash": "0ca42cbc4f22da0578a209aaeb544bf8",
+    "semantic_hash": "0ca42cbc4f22da0578a209aaeb544bf8"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\obj\\Debug\\net8.0\\Seizu.Tmg1.Core.sourcelink.json": {
+    "mtime": 1766377646.2440915,
+    "ast_hash": "e8de8fe3269d0219daacec8ea591219e",
+    "semantic_hash": "e8de8fe3269d0219daacec8ea591219e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\obj\\Seizu.Tmg1.Core.csproj.nuget.dgspec.json": {
+    "mtime": 1766377642.0024111,
+    "ast_hash": "90ce006fd69e1f32b5c0203a06345276",
+    "semantic_hash": "90ce006fd69e1f32b5c0203a06345276"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\obj\\project.assets.json": {
+    "mtime": 1766377641.9973924,
+    "ast_hash": "919b26112b101e66428da9dcb6e4b563",
+    "semantic_hash": "919b26112b101e66428da9dcb6e4b563"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\FrequencyModelTests.cs": {
+    "mtime": 1766337173.5905864,
+    "ast_hash": "4c936750b1f60b395e1747dace1c3093",
+    "semantic_hash": "4c936750b1f60b395e1747dace1c3093"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\NUnitSettings.cs": {
+    "mtime": 1766337173.5915859,
+    "ast_hash": "76d2855ba51e38f818b347f7e10eac17",
+    "semantic_hash": "76d2855ba51e38f818b347f7e10eac17"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\PayloadCompressorTests.cs": {
+    "mtime": 1766337173.5915859,
+    "ast_hash": "a077f1e8d4f7b4e1946ad9da9457aa2e",
+    "semantic_hash": "a077f1e8d4f7b4e1946ad9da9457aa2e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\PredictionFilterTests.cs": {
+    "mtime": 1766337173.5915859,
+    "ast_hash": "3a72d638e2c92621369b1c644a464b66",
+    "semantic_hash": "3a72d638e2c92621369b1c644a464b66"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\RangeCoderTests.cs": {
+    "mtime": 1766337173.5915859,
+    "ast_hash": "3e9769d95080e1b79755b93212ae76a0",
+    "semantic_hash": "3e9769d95080e1b79755b93212ae76a0"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\RiceCoderTests.cs": {
+    "mtime": 1766337173.5915859,
+    "ast_hash": "6606b203f4562aec52045c8c476ecc71",
+    "semantic_hash": "6606b203f4562aec52045c8c476ecc71"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\Seizu.Tmg1.Tests.csproj": {
+    "mtime": 1766337173.5915859,
+    "ast_hash": "c9ae2f0cf10ca78cb3f463cd3f611770",
+    "semantic_hash": "c9ae2f0cf10ca78cb3f463cd3f611770"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\Tmg1DecoderTests.cs": {
+    "mtime": 1766337173.5930889,
+    "ast_hash": "49333738a595fa99d04402623340a517",
+    "semantic_hash": "49333738a595fa99d04402623340a517"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\Tmg1EncoderTests.cs": {
+    "mtime": 1766377820.8407722,
+    "ast_hash": "08d8f7ef47f3f513292992c24527c8ff",
+    "semantic_hash": "08d8f7ef47f3f513292992c24527c8ff"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\Tmg1StreamWriterTests.cs": {
+    "mtime": 1766337173.5930889,
+    "ast_hash": "e79c60f7062790bcc81f5640bd91898e",
+    "semantic_hash": "e79c60f7062790bcc81f5640bd91898e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\bin\\Debug\\net8.0\\Seizu.Tmg1.Tests.deps.json": {
+    "mtime": 1766377675.3046508,
+    "ast_hash": "60f275aadebc7ae10d91d17e5be81fc1",
+    "semantic_hash": "60f275aadebc7ae10d91d17e5be81fc1"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\bin\\Debug\\net8.0\\Seizu.Tmg1.Tests.runtimeconfig.json": {
+    "mtime": 1766377675.3666835,
+    "ast_hash": "9fcdf880f73e74cf6347f8194b9f3509",
+    "semantic_hash": "9fcdf880f73e74cf6347f8194b9f3509"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\obj\\Debug\\net8.0\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs": {
+    "mtime": 1766377648.050517,
+    "ast_hash": "9b225453b5a8008eefb62f6c5c66ce15",
+    "semantic_hash": "9b225453b5a8008eefb62f6c5c66ce15"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\obj\\Debug\\net8.0\\Seizu.Tmg1.Tests.AssemblyInfo.cs": {
+    "mtime": 1766377648.0911765,
+    "ast_hash": "9ddb39eefdd9056245457f24bf192c0b",
+    "semantic_hash": "9ddb39eefdd9056245457f24bf192c0b"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\obj\\Debug\\net8.0\\Seizu.Tmg1.Tests.GlobalUsings.g.cs": {
+    "mtime": 1766377645.9184346,
+    "ast_hash": "96e56606807d9a32a4d9b5171396f7c3",
+    "semantic_hash": "96e56606807d9a32a4d9b5171396f7c3"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\obj\\Debug\\net8.0\\Seizu.Tmg1.Tests.sourcelink.json": {
+    "mtime": 1766377648.1182046,
+    "ast_hash": "e8de8fe3269d0219daacec8ea591219e",
+    "semantic_hash": "e8de8fe3269d0219daacec8ea591219e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\obj\\Seizu.Tmg1.Tests.csproj.nuget.dgspec.json": {
+    "mtime": 1766377645.8223264,
+    "ast_hash": "7fc3025ffdec721ae5cac08bbc931f83",
+    "semantic_hash": "7fc3025ffdec721ae5cac08bbc931f83"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\obj\\project.assets.json": {
+    "mtime": 1766377645.819814,
+    "ast_hash": "452273ecb79563e964c66d23e0bde60e",
+    "semantic_hash": "452273ecb79563e964c66d23e0bde60e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.graphify_ast_extract.py": {
+    "mtime": 1780370994.7515972,
+    "ast_hash": "37792c27bc866d311a18daf9ef88c08e",
+    "semantic_hash": "37792c27bc866d311a18daf9ef88c08e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.graphify_cache_check.py": {
+    "mtime": 1780371000.7886693,
+    "ast_hash": "567ce7f0f789adb8a355f059f881445d",
+    "semantic_hash": "567ce7f0f789adb8a355f059f881445d"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.graphify_detect.json": {
+    "mtime": 1780371049.5132637,
+    "ast_hash": "ea07cd18c22a4a964a552bef9ff3cbd9",
+    "semantic_hash": "ea07cd18c22a4a964a552bef9ff3cbd9"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\src\\FrequencyModel.h": {
+    "mtime": 1768109611.3860364,
+    "ast_hash": "0064d17a1a32ae6c69174c629153f7d6",
+    "semantic_hash": "0064d17a1a32ae6c69174c629153f7d6"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\src\\RangeDecoder.h": {
+    "mtime": 1768138983.260328,
+    "ast_hash": "5a22979163b4b29f7172c6c27f5ff122",
+    "semantic_hash": "5a22979163b4b29f7172c6c27f5ff122"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\src\\RiceBitReader.cpp": {
+    "mtime": 1768109619.0042439,
+    "ast_hash": "f28d4d075a86904c6d0572936f3a946a",
+    "semantic_hash": "f28d4d075a86904c6d0572936f3a946a"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\src\\RiceBitReader.h": {
+    "mtime": 1768109628.0906205,
+    "ast_hash": "196ddddc01a596bcaee5bba55d1a7c99",
+    "semantic_hash": "196ddddc01a596bcaee5bba55d1a7c99"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\src\\Tmg1Decoder.cpp": {
+    "mtime": 1768147294.2383666,
+    "ast_hash": "664a75863e98f0a1d10d2d2a6e7ee22d",
+    "semantic_hash": "664a75863e98f0a1d10d2d2a6e7ee22d"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\src\\Tmg1Decoder.h": {
+    "mtime": 1768139933.6383162,
+    "ast_hash": "e3d67085b4d9b12a21c7d5f5188d100a",
+    "semantic_hash": "e3d67085b4d9b12a21c7d5f5188d100a"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\src\\main.cpp": {
+    "mtime": 1769480515.9698298,
+    "ast_hash": "bd8b3ee7854c039cd0c205e25ed9739a",
+    "semantic_hash": "bd8b3ee7854c039cd0c205e25ed9739a"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\test\\MemoryStream.h": {
+    "mtime": 1768109862.992286,
+    "ast_hash": "60b5d365909980f673f25175052bea22",
+    "semantic_hash": "60b5d365909980f673f25175052bea22"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\test\\stubs\\Arduino.cpp": {
+    "mtime": 1768109895.4917848,
+    "ast_hash": "7e03dba1db9a98ee64d20c181c001e62",
+    "semantic_hash": "7e03dba1db9a98ee64d20c181c001e62"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\test\\stubs\\Arduino.h": {
+    "mtime": 1768109898.2108457,
+    "ast_hash": "bfcad8a1050be7744605b684db136851",
+    "semantic_hash": "bfcad8a1050be7744605b684db136851"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\test\\test_Tmg1Decoder.cpp": {
+    "mtime": 1768109871.941514,
+    "ast_hash": "06913cd3b77b6ad71fbd9f9e00ad705d",
+    "semantic_hash": "06913cd3b77b6ad71fbd9f9e00ad705d"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\test\\test_main.cpp": {
+    "mtime": 1768109869.1765058,
+    "ast_hash": "3692c61b8815619b700a576e13e22c5e",
+    "semantic_hash": "3692c61b8815619b700a576e13e22c5e"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\.devcontainer\\compose.yml": {
+    "mtime": 1766337173.5774214,
+    "ast_hash": "a33fd8340faecc819bfcc0697eb12b4a",
+    "semantic_hash": "a33fd8340faecc819bfcc0697eb12b4a"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\.gitlab-ci.yml": {
+    "mtime": 1766337173.5799334,
+    "ast_hash": "9397a13d049ad7d97674ed0af92b3c62",
+    "semantic_hash": "9397a13d049ad7d97674ed0af92b3c62"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\.gitpod.yml": {
+    "mtime": 1766337173.5799334,
+    "ast_hash": "51c9f5db7ae8e23c4cc7714a6c2681ee",
+    "semantic_hash": "51c9f5db7ae8e23c4cc7714a6c2681ee"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\CHANGELOG.md": {
+    "mtime": 1766337173.5809355,
+    "ast_hash": "b5386640b82d1672f2b8fb2ef2d5064b",
+    "semantic_hash": "b5386640b82d1672f2b8fb2ef2d5064b"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\CONTRIBUTING.md": {
+    "mtime": 1766337173.5809355,
+    "ast_hash": "1963b26068e98aa788131e4f1d3fff56",
+    "semantic_hash": "1963b26068e98aa788131e4f1d3fff56"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\README.ja.md": {
+    "mtime": 1766337173.5819333,
+    "ast_hash": "dccd81dfb9c3d0b9dc2e68cbed793f2a",
+    "semantic_hash": "dccd81dfb9c3d0b9dc2e68cbed793f2a"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\README.md": {
+    "mtime": 1766337173.5819333,
+    "ast_hash": "d3aa128e78622d3984350d96e591f0ed",
+    "semantic_hash": "d3aa128e78622d3984350d96e591f0ed"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Cli\\obj\\Debug\\net8.0\\Seizu.Tmg1.Cli.csproj.FileListAbsolute.txt": {
+    "mtime": 1766423246.5633981,
+    "ast_hash": "a2639b90477737414a2c484568a3c748",
+    "semantic_hash": "a2639b90477737414a2c484568a3c748"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\src\\Seizu.Tmg1.Core\\obj\\Debug\\net8.0\\Seizu.Tmg1.Core.csproj.FileListAbsolute.txt": {
+    "mtime": 1766377647.8997924,
+    "ast_hash": "4cb6d30b09a7b33ccda6b026e378ae1b",
+    "semantic_hash": "4cb6d30b09a7b33ccda6b026e378ae1b"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gemini\\tmp\\encoder_repo\\tests\\Seizu.Tmg1.Tests\\obj\\Debug\\net8.0\\Seizu.Tmg1.Tests.csproj.FileListAbsolute.txt": {
+    "mtime": 1766377675.3780973,
+    "ast_hash": "c6827b715c56d29317b5dd1e84925d74",
+    "semantic_hash": "c6827b715c56d29317b5dd1e84925d74"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\.gitlab-ci.yml": {
+    "mtime": 1766356270.2094104,
+    "ast_hash": "9e016278295dbeaeabfcc2deb010da0f",
+    "semantic_hash": "9e016278295dbeaeabfcc2deb010da0f"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\CLAUDE.md": {
+    "mtime": 1780370693.8524764,
+    "ast_hash": "f1ab31c8f48154e35b67095f373d22a2",
+    "semantic_hash": "f1ab31c8f48154e35b67095f373d22a2"
+  },
+  "D:\\workspace\\TsuMuGi\\tmg1-arduino\\README.md": {
+    "mtime": 1766314986.7751536,
+    "ast_hash": "ee625bdcab6db86fd7495d8a6266b867",
+    "semantic_hash": "ee625bdcab6db86fd7495d8a6266b867"
+  }
+}
