@@ -9,11 +9,10 @@ Thumbs.db
 # PlatformIO
 # Core files are ignored by default. We are tracking some VSCode files for a better team experience.
 .pio/
-.vscode/
+.vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/tasks.json
-!.vscode/launch.json
 
 # Build output
 build/
