@@ -4,7 +4,7 @@
 
 ---
 
-### 2026-06-07 セッション
+### 2026-06-07 セッション 1
 
 #### 作業内容
 TMG1コーデックのアーキテクチャ見直しと実装計画策定。
@@ -27,15 +27,59 @@ TMG1コーデックのアーキテクチャ見直しと実装計画策定。
 | I/O抽象化 | コールバックベース（Tmg1Stream） | Arduino・デスクトップ両対応 |
 | Rust FFI | bindgen + cmakeクレート | 自動バインディング生成 |
 
-#### Rangeコーダ v2 定数（重要）
-- `_range`: uint32、初期値 `0xFFFFFFFF`
-- `_code`: uint32（初期読み込み4バイト）
-- `_low`: uint64
-- `BottomValue = 1 << 23`
-- `TopValue = 1 << 24`
-- 中間積最大 2^52 → uint64で完結、uint128不要
+---
+
+### 2026-06-07 セッション 2
+
+#### 作業内容
+Phase 1: `lib/tmg1-codec` 共通C++ライブラリの実装。
+
+#### 完了したこと
+
+| ファイル | 内容 |
+|---|---|
+| `lib/tmg1-codec/include/tmg1/types.h` | 定数・enum・FileHeader・FrameHeader・EncodeConfig |
+| `lib/tmg1-codec/include/tmg1/io.h` | Tmg1Stream コールバック定義、メモリバッファヘルパー |
+| `lib/tmg1-codec/include/tmg1/freq_model.h` | 適応型頻度モデル (Arduino依存なし) |
+| `lib/tmg1-codec/include/tmg1/rice_reader.h/.cpp` | Riceビット読み取り (Arduino依存なし) |
+| `lib/tmg1-codec/include/tmg1/rice_writer.h/.cpp` | Riceビット書き込み (Tmg1Stream経由) |
+| `lib/tmg1-codec/include/tmg1/range_decoder.h/.cpp` | **v2 32bit Rangeデコーダ** (IRAM_ATTR対応, uint128不要) |
+| `lib/tmg1-codec/include/tmg1/range_encoder.h/.cpp` | **v2 32bit Rangeエンコーダ** |
+| `lib/tmg1-codec/include/tmg1/prediction.h/.cpp` | 予測フィルタ (None/Left/Up) |
+| `lib/tmg1-codec/include/tmg1/decoder.h/.cpp` | tmg1::Decoder クラス (Tmg1Stream I/F) |
+| `lib/tmg1-codec/include/tmg1/encoder.h/.cpp` | tmg1::Encoder クラス (Tmg1Stream I/F) |
+| `lib/tmg1-codec/include/tmg1/arduino_stream.h` | Arduino Stream → Tmg1Stream アダプタ |
+| `lib/tmg1-codec/c_api/tmg1_c.h/.cpp` | extern "C" API (Rust FFI用) |
+| `lib/tmg1-codec/test/test_rice.cpp` | Riceコーダ ユニットテスト |
+| `lib/tmg1-codec/test/test_range.cpp` | Rangeコーダ ユニットテスト |
+| `lib/tmg1-codec/test/test_prediction.cpp` | 予測フィルタ ユニットテスト |
+| `lib/tmg1-codec/test/test_codec.cpp` | エンコード→デコード ラウンドトリップテスト |
+| `lib/tmg1-codec/CMakeLists.txt` | デスクトップビルド・テスト設定 |
+| `lib/tmg1-codec/library.properties` | Arduino ライブラリ認識用 |
+| `src/main.cpp` | 新API (tmg1::Decoder + tmg1_stream_from_arduino) に更新 |
+| `test/test_Tmg1Decoder.cpp` | 新APIに対応したテストに書き換え |
+| `test/test_main.cpp` | 更新 |
+| `platformio.ini` | native 環境を新API対応に更新 |
+
+#### 決定事項
+
+| 決定 | 内容 | 理由 |
+|---|---|---|
+| 配置場所 | `lib/tmg1-codec/` (tmg1-arduino内) | 今すぐビルドが動く。後でサブモジュール化 |
+| `_low` の型 | uint32 (デコーダ), uint32 (エンコーダ) | 32bit wrap-aroundで動作 |
+| フラッシュバイト数 | 4バイト (v1は8バイト) | v2 32bit化に対応 |
+
+#### Rangeコーダ v2 実装詳細（重要）
+- デコーダ: `_low`, `_range`, `_code` すべて uint32
+- `scaledCode = ((code - low + 1) * total - 1) / range` → uint64で計算（積 ≦ 2^52）
+- 正規化条件: `(_low ^ (_low + _range)) < (1u << 24) || _range < (1u << 23)`
+- 初期化: 4バイト読み込み `_code = (b3<<24)|(b2<<16)|(b1<<8)|b0`
+- エンコーダflush: `_low >> 24` を4回出力
 
 #### 次回セッションで取り組む内容
-- `tmg1-codec` リポジトリ新規作成
-- Phase 1 実装開始（types.h / io.h 設計から）
-- 実装順序は `docs/implementation-plan.md` の Phase 1 に従う
+1. **旧ファイル削除**: `src/FrequencyModel.h`, `src/RangeDecoder.h`, `src/RiceBitReader.h/.cpp`, `src/Tmg1Decoder.h/.cpp` を手動削除する
+2. **テスト実行**: `pio test -e native` でPlatformIOテスト、または CMake でlib/tmg1-codec/testを実行
+3. **v2テストデータ生成**: `test/test_data_simple.tmg1` をv2フォーマットで再生成
+4. **GitLab CI設定**: `.gitlab-ci.yml` でCMakeテストを自動実行
+5. Phase 2: `lib/tmg1-codec` を独立リポジトリ化してサブモジュール化
+6. Phase 3: `tmg1-rust-cli` 新規作成
