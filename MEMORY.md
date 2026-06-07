@@ -77,9 +77,32 @@ Phase 1: `lib/tmg1-codec` 共通C++ライブラリの実装。
 - エンコーダflush: `_low >> 24` を4回出力
 
 #### 次回セッションで取り組む内容
-1. **旧ファイル削除**: `src/FrequencyModel.h`, `src/RangeDecoder.h`, `src/RiceBitReader.h/.cpp`, `src/Tmg1Decoder.h/.cpp` を手動削除する
-2. **テスト実行**: `pio test -e native` でPlatformIOテスト、または CMake でlib/tmg1-codec/testを実行
-3. **v2テストデータ生成**: `test/test_data_simple.tmg1` をv2フォーマットで再生成
-4. **GitLab CI設定**: `.gitlab-ci.yml` でCMakeテストを自動実行
-5. Phase 2: `lib/tmg1-codec` を独立リポジトリ化してサブモジュール化
-6. Phase 3: `tmg1-rust-cli` 新規作成
+1. Phase 2: `lib/tmg1-codec` を独立リポジトリ化してサブモジュール化
+2. Phase 3: `tmg1-rust-cli` 新規作成
+
+---
+
+### 2026-06-07 セッション 3
+
+#### 作業内容
+旧ファイル削除・テスト完全化・GitLab CI改善。
+
+#### 完了したこと
+
+| 作業 | 詳細 |
+|---|---|
+| 旧ファイル削除 | `src/` から6ファイル削除 (FrequencyModel.h, RangeDecoder.h, RiceBitReader.h/.cpp, Tmg1Decoder.h/.cpp) |
+| テスト完全化 | `test_decode_file_from_simple_tmg1` を実装。tmpfile経由ラウンドトリップテスト。11 PASSED / 0 SKIPPED |
+| io.h 拡張 | stdio (FILE*) ベース Tmg1Stream ヘルパー追加 (`tmg1_file_read/write/tell/seek`, `tmg1_stream_from_file_read/write`) |
+| CI改善 | `.gitlab-ci.yml` にキャッシュ・rules・CMakeビルドジョブ追加 |
+
+#### 決定事項
+
+| 決定 | 内容 | 理由 |
+|---|---|---|
+| ファイルテストの実装 | tmpfile()でエンコード→デコードラウンドトリップ | パス依存なし・自己完結・FILE* I/Oを実際にテスト |
+| stdio ヘルパー配置 | io.h 内に `#if !defined(ARDUINO)` ガードで追加 | Arduino環境では不使用、デスクトップテストで有用 |
+
+#### 次回セッションで取り組む内容
+1. Phase 2: `lib/tmg1-codec` を独立リポジトリ化してサブモジュール化
+2. Phase 3: `tmg1-rust-cli` 新規作成
