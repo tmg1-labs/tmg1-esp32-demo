@@ -3,4 +3,4 @@
 	url = https://gitlab.com/seizu/tsumugi/gitlab-profile.git
 [submodule "lib/tmg1-codec"]
 	path = lib/tmg1-codec
-	url = git@gitlab.com:seizu/tsumugi/tmg1-codec.git
+	url = ../tmg1-codec.git
