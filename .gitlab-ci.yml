@@ -9,6 +9,7 @@ test_native:
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
     PLATFORMIO_PACKAGES_DIR: "$CI_PROJECT_DIR/.cache/platformio"
+    GIT_SUBMODULE_STRATEGY: recursive
 
   cache:
     key: "pio-$CI_COMMIT_REF_SLUG"
@@ -34,6 +35,7 @@ test_cmake:
   image: gcc:13
 
   variables:
+    GIT_SUBMODULE_STRATEGY: recursive
     UNITY_DIR: "$CI_PROJECT_DIR/lib/tmg1-codec/vendor/unity"
 
   before_script:
