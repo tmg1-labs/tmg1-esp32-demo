@@ -1,4 +1,5 @@
 #include <string.h>
+#include <cstdio>
 #include <unity.h>
 #include "tmg1/decoder.h"
 #include "tmg1/encoder.h"
@@ -124,7 +125,57 @@ void test_decode_simple_frames() {
     TEST_ASSERT_EQUAL_UINT8_ARRAY(frame1, out, frameSize);
 }
 
-// ファイルからの読み込みテスト (v2テストデータ未作成のためスキップ)
+// ファイルI/Oを経由したデコードテスト
+// エンコード→tmpfile書き込み→FILE*読み込み→デコードのフローを検証する
 void test_decode_file_from_simple_tmg1() {
-    TEST_IGNORE_MESSAGE("v2 test data file not yet generated. Use encoder to create.");
+    const uint16_t W = 8, H = 8;
+    const size_t frameSize = (W * H + 7) / 8;
+
+    uint8_t frame0[8] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88 };
+    uint8_t frame1[8] = { 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00 };
+
+    // エンコードしてメモリバッファへ
+    uint8_t encBuf[1024];
+    Tmg1MemWriteCtx encCtx = { encBuf, sizeof(encBuf), 0 };
+    Tmg1Stream encStream   = { &encCtx, nullptr, tmg1_mem_write, nullptr, nullptr };
+    {
+        tmg1::EncodeConfig cfg = {};
+        cfg.width         = W;
+        cfg.height        = H;
+        cfg.timebaseNum   = 1;
+        cfg.timebaseDen   = 30;
+        cfg.msbFirst      = false;
+        cfg.useRangeCoder = true;
+        cfg.deltaEnabled  = false;
+
+        tmg1::Encoder enc(cfg);
+        TEST_ASSERT_EQUAL_INT((int)tmg1::Error::None, (int)enc.begin(encStream));
+        TEST_ASSERT_EQUAL_INT((int)tmg1::Error::None, (int)enc.encodeFrame(frame0, frameSize));
+        TEST_ASSERT_EQUAL_INT((int)tmg1::Error::None, (int)enc.encodeFrame(frame1, frameSize));
+        enc.finish();
+    }
+
+    // 一時ファイルへ書き込む
+    FILE* fp = tmpfile();
+    TEST_ASSERT_NOT_NULL(fp);
+    size_t written = fwrite(encBuf, 1, encCtx.pos, fp);
+    TEST_ASSERT_EQUAL_UINT32(encCtx.pos, written);
+    rewind(fp);
+
+    // FILE* 経由でデコードする
+    Tmg1FileCtx fileCtx;
+    Tmg1Stream decStream = tmg1_stream_from_file_read(fileCtx, fp);
+    tmg1::Decoder dec;
+    TEST_ASSERT_EQUAL_INT((int)tmg1::Error::None, (int)dec.begin(decStream));
+    TEST_ASSERT_EQUAL_UINT16(W, dec.getWidth());
+    TEST_ASSERT_EQUAL_UINT16(H, dec.getHeight());
+
+    uint8_t out[8];
+    TEST_ASSERT_EQUAL_INT((int)tmg1::Error::None, (int)dec.decodeFrame(out, sizeof(out)));
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(frame0, out, frameSize);
+
+    TEST_ASSERT_EQUAL_INT((int)tmg1::Error::None, (int)dec.decodeFrame(out, sizeof(out)));
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(frame1, out, frameSize);
+
+    fclose(fp);
 }
