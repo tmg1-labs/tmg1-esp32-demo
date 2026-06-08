@@ -106,3 +106,38 @@ Phase 1: `lib/tmg1-codec` 共通C++ライブラリの実装。
 #### 次回セッションで取り組む内容
 1. Phase 2: `lib/tmg1-codec` を独立リポジトリ化してサブモジュール化
 2. Phase 3: `tmg1-rust-cli` 新規作成
+
+---
+
+### 2026-06-09 セッション（tmg1-cli パリティ: rice-mode + rice-k）
+
+#### 作業内容
+tmg1-cli を dotnet版CLIと機能パリティにする計画の2個目。Riceパラメータモード
+(Fixed/PerLine/PerFrame) と rice-k を全層 (C++ → C API → Rust) に実装。
+
+#### 完了したこと
+| 層 | 変更 |
+|---|---|
+| codec `types.h` | `RICE_MODE_*` 定数、`EncodeConfig.riceMode`/`riceK` |
+| codec `encoder.cpp` | `compressPayloadRice` を3モード対応に書換、`findOptimalRiceK`/`collectLineRuns` 追加、frameFlags設定、圧縮先バッファ拡大 |
+| codec `tmg1_c.h/.cpp` | C API に riceMode/riceK 同期 |
+| cli `ffi.rs`/`main.rs` | `--rice-mode`(既定 per-line) / `--rice-k`(0..7) |
+
+- 検証: 全モード × k=0..7 で encode→decode バイナリ一致 (rice/range)。
+- コミット: codec=b9e445d, cli=58b1597 (push未実施)。
+
+#### 決定事項
+| 決定 | 内容 | 理由 |
+|---|---|---|
+| Fixedモードの実体 | per-frame機構を流用 (PER_FRAME_K + 3bitにconfig.riceK強制) | 仕様上Riceのk格納はper-line/per-frameの2機構のみ。「任意kのFixed」はフォーマット非存在。デコーダ無改造・仕様準拠・dotnetパリティ維持 |
+
+#### 注意・修正したバグ
+- 圧縮先バッファ `_frameBufferSize*2+64` がRice k=7で不足し `tmg1_mem_write` が黙って
+  切り詰め→decode不能だった。`*10+height+64` に拡大。根因は writeBit系が writeByte の
+  エラーを伝播しない点 (将来改善余地)。詳細 ERRORS.md #7。
+- push未実施。codecのpushとarduino側(`lib/tmg1-codec`)ポインタ更新は別途ユーザー対応。
+  standalone `d:/workspace/TsuMuGi/tmg1-codec` は別cloneでprediction以降未取込み(77430f2)。
+
+#### 次回セッションで取り組む内容
+パリティ3個目「scd (scene change detection)」 — encoderのみ。P-frame時にI/P両方を
+圧縮し小さい方を採用する。

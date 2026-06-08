@@ -88,8 +88,15 @@ void loop() {
     tmg1::Error err = decoder.decodeFrame(frameBuffer, frameDataSize);
     if (err == tmg1::Error::None) {
         u8g2.clearBuffer();
-        // v2ファイルは msbFirst=false (LSBファースト) で作成することを推奨。
-        // drawXBMP はXBM形式 (LSBファースト) を期待する。
+        // drawXBMP はXBM形式(LSBファースト)を期待する。
+        // デコード済みバッファはMSBファーストのため、各バイトのビット順を反転して渡す。
+        for (size_t i = 0; i < frameDataSize; ++i) {
+            uint8_t b = frameBuffer[i];
+            b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+            b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+            b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+            frameBuffer[i] = b;
+        }
         u8g2.drawXBMP(0, 0, videoWidth, videoHeight, frameBuffer);
 
         // FPS 計算
