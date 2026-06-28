@@ -1,23 +1,27 @@
 # TMG1コーデック
 
-## 概要
+@.claude/architecture.md
+@.claude/coding-style.md
+@.claude/workflows.md
+@.claude/context/current-sprint.md
+@.claude/context/known-issues.md
 
-- Arduinoプラットフォーム向けの動画デコーダライブラリを作ります。
-- PlatformIOを使用します。ESP32ボードを想定しています。
-- 対象の動画フォーマットはTMG1(https://gitlab.com/seizu/tsumugi/gitlab-profile/-/blob/main/README.md)です。
+## Quick facts
+- 言語: C++17 (`-std=gnu++17`)
+- 対象: Arduino / ESP32 (esp32dev, seeed_xiao-esp32c3, super-mini-k2) + native(デスクトップ)
+- ビルド: PlatformIO / コーデック単体は CMake
+- テスト: Unity (PlatformIO `pio test -e native` / CMake `ctest`)
+- CI: GitLab CI (`.gitlab-ci.yml`)
+- フォーマッタ: clang-format (Google ベース, ColumnLimit 120)
+- フォーマット仕様: TMG1 (v2 / 32bit Range コーダ)
+- コーデック本体: `lib/tmg1-codec`（サブモジュール、別リポジトリ。CLI/Arduino で共有）
 
-## 実装方針
-
-- エンコーダの実装(https://gitlab.com/seizu/tsumugi/tmg1-encoder-dotnet)を参考に、デコーダを実装する。
-- 軽量かつ高速であることを意識するようにします。
-- メモリ消費を抑える為、入力および出力はストリームを利用します。
-- LittleFSを利用した動画再生のサンプルプログラムを作成します。
-- ソースコードには日本語のコメントを記入して、仕組みを把握しやすくします。
-- テストコードを作成して、GitLab CIで自動実行できるようにします。
-- テストフレームワークはUnityを使います。
-- カバレッジも100%になるべく近づけるようにします。
-- ライブラリの使い方をREADMEに英語で書き、日本語バージョンも同時に作成します。
+## 関連リポジトリ
+- `tmg1-codec`: 共通C++コーデックライブラリ（このリポジトリにサブモジュールとして同梱）
+- `tmg1-cli`: Rust 製 CLI（codec を FFI で利用、dotnet版とパリティ進行中）
 
 ## Claudeへの指示
-
 - 方針の決定や修正に関する意図や経緯があれば記録していくこと。
+- セッションの記録は `session-record` スキル、初期化は `code-project-init` スキルを使う。
+- 長期の決定経緯・セッション履歴は `.claude/context/session-history.md`、過去のエラー解決は
+  `.claude/context/errors-log.md` を参照。
