@@ -27,18 +27,23 @@ tmg1-arduino (このリポジトリ)
 ## 技術選定の理由
 
 - **共通ライブラリを C++ に**: Arduino はネイティブ C++、Rust は FFI で接続可能。
-- **Range コーダを v2 で 32bit 化**: ESP32 高速化・MSVC 対応・uint128 実装回避。
-  `_low`/`_range`/`_code` はすべて uint32、フラッシュは 4 バイト。
-  v1 互換は維持しない（試作段階のため）。
+- **Range コーダを v2 化（64bit）**: MSVC 対応・`__uint128_t` 実装回避。
+  `_low`/`_range`/`_code` はすべて uint64（`_range` 初期値 `0xFFFF…FFFF`）、
+  `TopValue=1<<56` / `BottomValue=1<<24`。divide-first（`step=_range/total` 先算）で積が uint64 に収まり uint128 不要。
+  フラッシュは `_low >> 56` を 8 バイト出力。v1 互換は維持しない（試作段階のため）。
 - **.NET エンコーダは終息** → Rust CLI に置き換え（プラットフォーム依存・将来性）。
 - **コーデックをサブモジュール化**: CLI/Arduino で単一の codec コミットを共有する。
 
 ## Range コーダ v2 実装の要点（壊しやすい不変条件）
 
-- デコーダ: `scaledCode = ((code - low + 1) * total - 1) / range` を uint64 で計算（積 ≦ 2^52）。
-- 正規化条件: `(_low ^ (_low + _range)) < (1u << 24) || _range < (1u << 23)`。
-- 初期化: 4 バイト読み `_code = (b3<<24)|(b2<<16)|(b1<<8)|b0`。
-- エンコーダ flush: `_low >> 24` を 4 回出力。
+- 共通演算（divide-first）: `step = _range / total` を先に求め、`_low += step * cumulative; _range = step * symbolFreq`（`_range==0` なら 1）。
+- デコーダ: `scaledCode = (_code - _low) / step`（`scaledCode >= total` なら `total-1` にクランプ）。
+- 正規化（while ループ）: `sum=_low+_range` のオーバーフローを検出し
+  `xorVal = overflow ? 0xFFFF…FFFF : (_low ^ sum)`。
+  `xorVal >= TopValue(1<<56) && _range >= BottomValue(1<<24)` で break、
+  それ以外は 1 バイト処理（`_low<<=8; _range<<=8`、デコーダは併せて `_code = (_code<<8)|readByte()`）。
+- 初期化: 8 バイト読み `_code = (_code<<8)|byte` を 8 回。
+- エンコーダ flush: `_low >> 56` を 8 回出力。
 
 ## 禁止パターン
 
