@@ -55,7 +55,7 @@
 - 全リポジトリのコミット（`gitlab-profile` `c096b4f` / `tmg1-codec` `0855972` / `tmg1-cli` `73e52f3` / `tmg1-esp32-demo`(旧 arduino) `390a759`）はいずれも **未 push**。
 - 仕様書リンクは `github.com/tmg1-labs/.github/blob/main/docs/tmg1-format(.ja).md` を指す前提。**`.github` リポジトリを GitHub へ公開・push するまでリンク切れ**（公開順序: 先に .github 側を出す）。
 - GitHub 公開方式（個人で公開→組織へ transfer / 最初から組織直下）は未確定。`tmg1-labs/` 直下でない形になる場合は全 README のリンク再調整が必要。
-- **CI は GitHub Actions へ移行済み（2026-07-01）だが、README の CI 説明文は「GitLab（`.gitlab-ci.yml`）」のまま残置**。各 README を GitHub Actions 記述へ要更新。
+- CI は GitHub Actions へ移行済み（2026-07-01）。各 README（codec/cli/arduino の英・日 計6ファイル）の CI 説明も GitHub Actions 記述へ**更新済み**（2026-07-01）。
 - `transcode` は ffmpeg 未導入のため e2e 未検証（実装は完了）。
 - `info` 詳細化 + `transcode` のコミットは未実施の可能性あり（push 状況は要確認）。
 
@@ -65,12 +65,10 @@
 
 ## 次にやること
 - GitHub Actions 実走の最終確認（push 後）。特に **arduino の `test_native`(PlatformIO)はローカル未検証**。
-- 各 README の CI 説明を GitLab → GitHub Actions へ更新。
 - arduino `.gitmodules` の docs/specification(gitlab.com) の向け先を GitHub 公開時に判断（CI ではバイパス済み）。
 - 全リポジトリのコミットを GitHub `tmg1-labs` へ push。**先に `.github`（gitlab-profile）を公開**して仕様書リンクのリンク切れを解消する。
 - codec を push 後、`tmg1-esp32-demo` の `lib/tmg1-codec` サブモジュールポインタを最新 codec（`0855972`）へ同期。
 - GitHub 上でリポジトリ名 **`tmg1-esp32-demo`** で作成/公開（ローカルフォルダ名 `tmg1-arduino`・git remote は未変更のまま。実フォルダを改名する場合は `.claude/architecture.md` の構成図と本ファイルの旧名記述も追従更新する）。
-- README の CI 説明は GitLab のまま残置（事実。GitHub Actions 移行時に要更新）。
 - 実機での表示確認とサンプル動画の最終調整。
 
 ## 参考

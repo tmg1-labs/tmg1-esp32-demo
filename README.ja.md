@@ -125,9 +125,9 @@ cd build && ctest --output-on-failure
 
 ## ビルドと CI
 
-CI は GitLab（`.gitlab-ci.yml`）で 2 ジョブを実行します: `test_native`
-（PlatformIO native テスト）と `test_cmake`（codec の ctest）。サブモジュールは
-`GIT_SUBMODULE_STRATEGY: recursive` で取得します。
+CI は GitHub Actions（`.github/workflows/ci.yml`）で 2 ジョブを実行します:
+`test_native`（PlatformIO native テスト）と `test_cmake`（codec の ctest）。
+ビルドに必要な `lib/tmg1-codec` サブモジュールのみ初期化します（docs サブモジュールは不要）。
 
 ## TMG1 フォーマット
 

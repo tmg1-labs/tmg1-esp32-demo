@@ -125,9 +125,10 @@ cd build && ctest --output-on-failure
 
 ## Build & CI
 
-CI runs on GitLab (`.gitlab-ci.yml`) with two jobs: `test_native` (PlatformIO
-native tests) and `test_cmake` (codec ctest). Submodules are fetched with
-`GIT_SUBMODULE_STRATEGY: recursive`.
+CI runs on GitHub Actions (`.github/workflows/ci.yml`) with two jobs:
+`test_native` (PlatformIO native tests) and `test_cmake` (codec ctest). Only the
+`lib/tmg1-codec` submodule is initialized (the docs submodule is not needed for
+builds).
 
 ## TMG1 Format
 
