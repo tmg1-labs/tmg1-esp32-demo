@@ -47,6 +47,11 @@
 - **回避策**: 処理を `.sh` に書き出して `wsl bash -lc 'bash /mnt/d/.../script.sh'` で実行。
   `/mnt` パスは `-lc` 文字列の**中**に置く（引数に直接渡すと Git Bash がパス変換する）。
 
+### git commit が `1Password: failed to fill whole buffer` で失敗
+- **症状**: `tmg1-codec` で `git commit` が `1Password: failed to fill whole buffer` / `fatal: failed to write commit object` で落ちる（他リポジトリは成功）。
+- **原因**: codec は `commit.gpgsign=true` + `gpg.format=ssh`（1Password の SSH 署名）。1Password がロック中だと非対話セッションで署名鍵を取得できない。
+- **回避策**: 1Password をアンロックして**同じコミットを再実行**すれば通る（ステージは残っている）。`--no-gpg-sign` で握りつぶさないこと。
+
 ## 地雷・禁止事項
 - v1 互換コードを持ち込まない（v2 のみ）。
 - codec の分岐コピーを増やさない（本流を直し、サブモジュールポインタで同期）。
