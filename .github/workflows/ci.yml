@@ -1,0 +1,61 @@
+name: CI
+
+# GitLab CI (.gitlab-ci.yml) から移行。MR / default / feature/* 相当を
+# pull_request + push(main, feature/**) で再現する。
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+
+jobs:
+  # ネイティブ(デスクトップ)テスト: PlatformIO test -e native
+  test_native:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # docs/specification(gitlab ホスト)は不要。ビルドに必要な codec のみ取得する。
+      # 相対 URL ../tmg1-codec.git は GitHub 上で tmg1-labs/tmg1-codec.git に解決される。
+      - name: Init codec submodule
+        run: git submodule update --init lib/tmg1-codec
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Native tests
+        run: pio test -e native -v
+
+  # CMake テスト: lib/tmg1-codec の独立ビルド検証
+  test_cmake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Init codec submodule
+        run: git submodule update --init lib/tmg1-codec
+
+      # Unity テストフレームワーク。CMakeLists.txt が vendor/unity を自動検出する。
+      - name: Checkout Unity
+        uses: actions/checkout@v4
+        with:
+          repository: ThrowTheSwitch/Unity
+          ref: v2.6.0
+          path: lib/tmg1-codec/vendor/unity
+
+      - name: Configure
+        run: cmake -B build -S lib/tmg1-codec -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

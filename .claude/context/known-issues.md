@@ -14,6 +14,22 @@
 - **回避策**: `.gitmodules` を相対 URL（`../tmg1-codec.git`）にし、サブモジュール側プロジェクトの
   Settings → CI/CD → Job token permissions に本リポジトリを許可リスト追加。
 
+### GitHub Actions: 他ホスト submodule の recursive 取得失敗（2026-07-01 移行時）
+- **症状/懸念**: arduino の `.gitmodules` は `lib/tmg1-codec`(相対 URL) と `docs/specification`(gitlab.com 絶対 URL) の2つ。
+  `actions/checkout` の `submodules: recursive` で取得すると、ビルドに不要な docs/specification まで gitlab.com から
+  fetch しに行き、非公開/到達不可だとジョブが失敗しうる。
+- **回避策**: recursive を使わず、ビルドに必要な submodule だけ明示 init する
+  （`git submodule update --init lib/tmg1-codec`）。相対 URL `../tmg1-codec.git` は superproject の origin
+  （GitHub）に対して解決されるため `tmg1-labs/tmg1-codec.git` を指す。
+- **副次の前提**: 相対 URL 解決のため **codec を先に GitHub 公開**してから cli/arduino を push する（公開順序依存）。
+- 注: cli は submodule が codec 1個のみなので `submodules: recursive` で問題なし。複数 submodule で一部が他ホストの
+  リポジトリだけ要注意。
+
+### GitHub Actions: ローカル未検証ジョブ（PlatformIO）
+- **状況**: arduino の `test_native`(`pio test -e native`)は開発機に PlatformIO 未導入で実走未検証のまま移行。
+  cmake 系ジョブは WSL gcc で代替検証済み（全19テスト PASS）。
+- **対応**: GitHub push 後の初回ワークフロー実行で `test_native` の成否を必ず確認する。
+
 ## コーデック実装
 
 ### Rice 大きい K で出力が黙って切り詰められる（重要）

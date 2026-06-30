@@ -1,8 +1,18 @@
 # 現在の作業コンテキスト
 
-最終更新: 2026-06-30（tmg1-arduino→tmg1-esp32-demo 改名・arduino README/LICENSE 整備・クロスリンク集約）
+最終更新: 2026-07-01（CI を GitLab CI → GitHub Actions へ移行: codec/cli/arduino の3リポジトリ）
 
 ## 今やっていること
+- **CI を GitLab CI → GitHub Actions へ移行**（2026-07-01、codec/cli/arduino の3リポジトリ、各 main、いずれも本セッションでコミット）。
+  - 各リポジトリで `.github/workflows/ci.yml` を新規追加し `.gitlab-ci.yml` を `git rm`（一本化）。
+  - 共通方針: トリガは `push`(branches: main, feature/**) + `pull_request`。runner は `ubuntu-latest`（rust/g++/cmake/python 同梱のため image 指定・apt 不要）。
+  - **codec**（正本作業コピー `d:/workspace/TsuMuGi/tmg1-codec`）: `test_cmake` 1ジョブ。Unity は `actions/checkout` で **v2.6.0 タグ固定**取得（旧 CI の master 追従 clone から変更、再現性向上）→ cmake build → ctest。
+  - **cli**: `build_test` 1ジョブに統合（GitLab は build/test 別ジョブ。両者とも submodule+g++ 必要で test は build 成果物依存のため統合）。`actions/checkout`(submodules: recursive) → `Swatinem/rust-cache@v2` → `cargo build --release` → `cargo test` → release バイナリ `tmg1` を `actions/upload-artifact@v4`(7日)。`build.rs` が `cc` で codec C++ をコンパイルするため submodule 必須。
+  - **arduino**: 2ジョブ（`test_native`=PlatformIO `pio test -e native`、`test_cmake`=cmake/ctest）。**docs/specification(gitlab.com 他ホスト submodule)は不要なので recursive にせず `git submodule update --init lib/tmg1-codec` で codec のみ init**（recursive だと gitlab 依存で失敗リスク）。GitLab 手動 cache は `setup-python` の pip cache + `actions/cache`(~/.platformio) に置換。
+  - 相対 URL submodule `../tmg1-codec.git` は GitHub 上で `tmg1-labs/tmg1-codec.git` に解決される前提。よって **公開順序は codec → cli/arduino**。
+  - 検証: codec/arduino の cmake ジョブ相当は WSL gcc で全19テスト PASS 確認。cli は `cargo clean` 後のクリーンビルド成功（codec を cc でコンパイル）+ `cargo test`(0件)。**arduino の `pio test -e native` はローカルに PlatformIO 未導入で実走未検証**（定義は旧 CI のコマンドを踏襲）。GitHub push 後の初回実行で最終確認。
+  - 注: README の CI 説明は「GitLab（`.gitlab-ci.yml`）」のまま残置（GitHub Actions へ要更新）。arduino `.gitmodules` の docs/specification はまだ gitlab.com を指す（公開時に向け先要判断）。
+- **tmg1-arduino → `tmg1-esp32-demo` へ改名 + README(英/日)・LICENSE 整備**（2026-06-30、commit `390a759`、main、未 push）。
 - **tmg1-arduino → `tmg1-esp32-demo` へ改名 + README(英/日)・LICENSE 整備**（2026-06-30、commit `390a759`、main、未 push）。
   - 位置づけを明確化: 取り込む Arduino ライブラリは **`tmg1-codec` 単体で完結**（`library.properties` + `arduino_stream.h` を同梱）。本リポジトリは「codec を実機で動かす ESP32 リファレンス（サンプル）」に過ぎない。
   - リポジトリ名を `tmg1-arduino`→`tmg1-esp32-demo` に改名決定（旧名はプレイヤー主体に見えるため。ESP32 専用デモという実態へ寄せる）。
@@ -45,7 +55,7 @@
 - 全リポジトリのコミット（`gitlab-profile` `c096b4f` / `tmg1-codec` `0855972` / `tmg1-cli` `73e52f3` / `tmg1-esp32-demo`(旧 arduino) `390a759`）はいずれも **未 push**。
 - 仕様書リンクは `github.com/tmg1-labs/.github/blob/main/docs/tmg1-format(.ja).md` を指す前提。**`.github` リポジトリを GitHub へ公開・push するまでリンク切れ**（公開順序: 先に .github 側を出す）。
 - GitHub 公開方式（個人で公開→組織へ transfer / 最初から組織直下）は未確定。`tmg1-labs/` 直下でない形になる場合は全 README のリンク再調整が必要。
-- README の CI 説明は「GitLab（`.gitlab-ci.yml`）」のまま残置（事実）。GitHub Actions 移行時に要更新。
+- **CI は GitHub Actions へ移行済み（2026-07-01）だが、README の CI 説明文は「GitLab（`.gitlab-ci.yml`）」のまま残置**。各 README を GitHub Actions 記述へ要更新。
 - `transcode` は ffmpeg 未導入のため e2e 未検証（実装は完了）。
 - `info` 詳細化 + `transcode` のコミットは未実施の可能性あり（push 状況は要確認）。
 
@@ -54,6 +64,9 @@
 - **訂正**: standalone の `d:/workspace/TsuMuGi/tmg1-codec` 別クローンは codec の **正本作業コピー**（README/LICENSE 整備はここで実施、HEAD `0855972`）。従来の「古いコミット・放置可」記述は誤り。arduino 側の `lib/tmg1-codec` はサブモジュールで別管理。codec を push 後にサブモジュールポインタを同期する。
 
 ## 次にやること
+- GitHub Actions 実走の最終確認（push 後）。特に **arduino の `test_native`(PlatformIO)はローカル未検証**。
+- 各 README の CI 説明を GitLab → GitHub Actions へ更新。
+- arduino `.gitmodules` の docs/specification(gitlab.com) の向け先を GitHub 公開時に判断（CI ではバイパス済み）。
 - 全リポジトリのコミットを GitHub `tmg1-labs` へ push。**先に `.github`（gitlab-profile）を公開**して仕様書リンクのリンク切れを解消する。
 - codec を push 後、`tmg1-esp32-demo` の `lib/tmg1-codec` サブモジュールポインタを最新 codec（`0855972`）へ同期。
 - GitHub 上でリポジトリ名 **`tmg1-esp32-demo`** で作成/公開（ローカルフォルダ名 `tmg1-arduino`・git remote は未変更のまま。実フォルダを改名する場合は `.claude/architecture.md` の構成図と本ファイルの旧名記述も追従更新する）。
