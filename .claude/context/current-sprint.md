@@ -68,7 +68,7 @@
 - arduino `.gitmodules` の docs/specification(gitlab.com) の向け先を GitHub 公開時に判断（CI ではバイパス済み）。
 - 全リポジトリのコミットを GitHub `tmg1-labs` へ push。**先に `.github`（gitlab-profile）を公開**して仕様書リンクのリンク切れを解消する。
 - codec を push 後、`tmg1-esp32-demo` の `lib/tmg1-codec` サブモジュールポインタを最新 codec（`0855972`）へ同期。
-- GitHub 上でリポジトリ名 **`tmg1-esp32-demo`** で作成/公開（ローカルフォルダ名 `tmg1-arduino`・git remote は未変更のまま。実フォルダを改名する場合は `.claude/architecture.md` の構成図と本ファイルの旧名記述も追従更新する）。
+- **ローカルフォルダ改名（手動・未実施）**: `tmg1-arduino` → `tmg1-esp32-demo`、`gitlab-profile` → `tmg1-labs.github`（リポジトリ実体は `tmg1-labs/.github`、先頭ドット回避の代替名）。codec/cli はリポジトリ名と一致済みで改名不要。GitHub 公開・remote 切替・README 整備は実施済みで、残るのはローカルフォルダ名のみ。セッションがフォルダのハンドルを掴むため改名はエディタ/セッションを閉じてから実施する。ドキュメントのフォルダ名参照（`.claude/architecture.md` の構成図、本ファイル）は新名へ更新済み。git remote / submodule はフォルダ名に依存しないため再設定不要。
 - 実機での表示確認とサンプル動画の最終調整。
 
 ## 参考
