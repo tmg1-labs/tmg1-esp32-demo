@@ -12,7 +12,7 @@ jobs:
   test_native:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # docs/specification(gitlab ホスト)は不要。ビルドに必要な codec のみ取得する。
       # 相対 URL ../tmg1-codec.git は GitHub 上で tmg1-labs/tmg1-codec.git に解決される。
       - name: Init codec submodule
@@ -38,13 +38,13 @@ jobs:
   test_cmake:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Init codec submodule
         run: git submodule update --init lib/tmg1-codec
 
       # Unity テストフレームワーク。CMakeLists.txt が vendor/unity を自動検出する。
       - name: Checkout Unity
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ThrowTheSwitch/Unity
           ref: v2.6.0

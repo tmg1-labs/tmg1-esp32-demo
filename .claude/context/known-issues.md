@@ -30,6 +30,16 @@
   cmake 系ジョブは WSL gcc で代替検証済み（全19テスト PASS）。
 - **対応**: GitHub push 後の初回ワークフロー実行で `test_native` の成否を必ず確認する。
 
+### GitHub Actions: setup-python の `cache: pip` で依存ファイル不在エラー（2026-07-01 実証）
+- **症状**: arduino の `test_native` 初回実行が `actions/setup-python@v5` ステップで失敗。
+  `No file in ... matched to [**/requirements.txt or **/pyproject.toml]`。
+- **原因**: `cache: pip` は `requirements.txt`/`pyproject.toml` のハッシュをキャッシュキーにするが、
+  本リポジトリにはどちらも無い（PlatformIO は `pip install platformio` で都度導入）ため、キー生成に失敗する。
+- **回避策**: `setup-python` から `cache: pip` を外す（commit `cb6bfbe`）。PlatformIO パッケージ本体の
+  キャッシュは `actions/cache`(`~/.platformio`)で別途行っているので影響なし。再実行で test_native/test_cmake とも success。
+- **教訓**: `setup-python` の pip キャッシュは「pip の依存ファイルが存在するプロジェクト」専用。
+  ツールをアドホックに `pip install` するだけの構成では使わない。
+
 ## コーデック実装
 
 ### Rice 大きい K で出力が黙って切り詰められる（重要）
