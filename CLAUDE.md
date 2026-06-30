@@ -11,7 +11,7 @@
 - 対象: Arduino / ESP32 (esp32dev, seeed_xiao-esp32c3, super-mini-k2) + native(デスクトップ)
 - ビルド: PlatformIO / コーデック単体は CMake
 - テスト: Unity (PlatformIO `pio test -e native` / CMake `ctest`)
-- CI: GitLab CI (`.gitlab-ci.yml`)
+- CI: GitHub Actions (`.github/workflows/ci.yml`)
 - フォーマッタ: clang-format (Google ベース, ColumnLimit 120)
 - フォーマット仕様: TMG1 (v2 / 32bit Range コーダ)
 - コーデック本体: `lib/tmg1-codec`（サブモジュール、別リポジトリ。CLI/Arduino で共有）

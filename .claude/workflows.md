@@ -35,9 +35,11 @@ cd build && ctest --output-on-failure
 - CMake テストは Unity を `lib/tmg1-codec/vendor/unity` に clone して使う（CI 参照）。
 
 ## CI
-- `.gitlab-ci.yml`: `test_native`(pio) と `test_cmake`(ctest) の 2 ジョブ。
-- 実行条件: MR / デフォルトブランチ / `feature/*` ブランチ。
-- サブモジュールは `GIT_SUBMODULE_STRATEGY: recursive`、相対 URL で取得。
+- `.github/workflows/ci.yml`（GitHub Actions、`ubuntu-latest`）: `test_native`(pio) と `test_cmake`(ctest) の 2 ジョブ。
+- 実行条件: `push`（`main` / `feature/**` ブランチ）と `pull_request`。
+- サブモジュールは recursive にせず、ビルドに必要な `lib/tmg1-codec` のみ `git submodule update --init` で取得
+  （`docs/specification` は gitlab.com 他ホストで不要なため除外）。相対 URL `../tmg1-codec.git` は GitHub の
+  `tmg1-labs/tmg1-codec` に解決される。
 
 ## codec サブモジュールの同期
 1. `lib/tmg1-codec` 本流（別リポジトリ）で修正・push。
