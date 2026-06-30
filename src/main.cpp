@@ -10,7 +10,7 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0);
 tmg1::Decoder decoder;
 uint8_t* frameBuffer      = nullptr;
 File     videoFile;
-const char* videoFileName = "/bad-apple15.tmg1";
+const char* videoFileName = "/sample-video.tmg1";
 
 uint32_t nextFrameMicros = 0;
 
@@ -90,6 +90,11 @@ void loop() {
         u8g2.clearBuffer();
         // drawXBMP はXBM形式(LSBファースト)を期待する。
         // デコード済みバッファはMSBファーストのため、各バイトのビット順を反転して渡す。
+        //
+        // ビット極性に関する注意:
+        //   drawXBMP はビット 1 を描画色として扱い、この実機では白黒が反転して表示される。
+        //   そのため動画は ffmpeg 側で白黒反転(negate)してからエンコードする運用とする。
+        //   (デコーダ/コーデックは無改造。エンコードを「反転前提」とする。)
         for (size_t i = 0; i < frameDataSize; ++i) {
             uint8_t b = frameBuffer[i];
             b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
