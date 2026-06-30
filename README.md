@@ -1,93 +1,147 @@
-# TMG1 Decorder
+# tmg1-esp32-demo
 
+**English** | [日本語](README.ja.md)
 
+A reference **ESP32 / Arduino** player for the **TMG1** 1-bit-per-pixel
+(bitplane) video format. It shows how to use the shared decoder library
+[`tmg1-codec`](https://github.com/tmg1-labs/tmg1-codec) on a device: it decodes
+`.tmg1` files from LittleFS and streams the frames to an SSD1306 128x64 I2C OLED
+through [U8g2](https://github.com/olikraus/u8g2).
 
-## Getting started
+The decoding itself is **not** implemented here — it lives in `tmg1-codec`, which
+is an Arduino library in its own right (it ships a `library.properties` and the
+`tmg1/arduino_stream.h` adapter). This repository is the **example**:
+[src/main.cpp](src/main.cpp) is a sample sketch, and the codec is vendored as a
+submodule only so the example builds — pinned to the exact codec commit used to
+encode, so the on-device decoder always matches the format it was given.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Using the codec in your own project
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+To decode TMG1 in your own Arduino / PlatformIO sketch, depend on **`tmg1-codec`**
+(not on this repository). With PlatformIO, add it to `lib_deps`:
 
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
+```ini
+lib_deps =
+    https://github.com/tmg1-labs/tmg1-codec.git
+    olikraus/U8g2@^2.36.15   ; only if you draw to a U8g2 display
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/seizu/tsumugi/tmg1-decorder.git
-git branch -M main
-git push -uf origin main
+
+Then wrap any Arduino `Stream` / `File` as a `Tmg1Stream` and pull frames out one
+at a time:
+
+```cpp
+#include <LittleFS.h>
+#include "tmg1/decoder.h"
+#include "tmg1/arduino_stream.h"
+
+tmg1::Decoder decoder;
+
+void setup() {
+  LittleFS.begin();
+  File f = LittleFS.open("/video.tmg1", "r");
+
+  // Wrap the Arduino File as a codec stream and read the header.
+  Tmg1Stream stream = tmg1_stream_from_arduino(f);
+  decoder.begin(stream);
+
+  const size_t frameSize = (decoder.getWidth() * decoder.getHeight() + 7) / 8;
+  uint8_t* buf = new uint8_t[frameSize];
+
+  // Each call yields one frame: ceil(w*h/8) bytes of an MSB-first 1bpp bitplane.
+  while (decoder.decodeFrame(buf, frameSize) == tmg1::Error::None) {
+    // ... draw buf, then pace by decoder.getLastPtsDelta() and the timebase ...
+  }
+}
 ```
 
-## Integrate with your tools
+See [src/main.cpp](src/main.cpp) for the full version (OLED output, FPS overlay,
+microsecond-precision frame pacing, and looping). Produce `.tmg1` files from
+video with [`tmg1-cli`](https://github.com/tmg1-labs/tmg1-cli).
 
-- [ ] [Set up project integrations](https://gitlab.com/seizu/tsumugi/tmg1-decorder/-/settings/integrations)
+## The example player
 
-## Collaborate with your team
+[src/main.cpp](src/main.cpp) demonstrates a complete player:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+- **Streaming decode** — frames are read from LittleFS and decoded one at a time
+  through `Tmg1Stream`, so a whole video never has to fit in RAM.
+- **OLED output with FPS overlay** — decoded bitplanes are drawn with
+  `u8g2.drawXBMP`, with a live frames-per-second counter in the corner.
+- **VFR-aware timing** — playback paces each frame from the stream's `ptsDelta`
+  and timebase with microsecond precision, so variable-frame-rate streams play
+  at the right speed.
+- **Loop playback** — at end-of-stream the decoder re-opens the file and
+  restarts.
 
-## Test and Deploy
+### Hardware
 
-Use the built-in continuous integration in GitLab.
+- An ESP32 / ESP32-C3 board.
+- An SSD1306 128x64 I2C OLED.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+> **Display polarity:** on the target OLED, `drawXBMP` treats bit `1` as the
+> drawing color, which makes the panel render black/white inverted. The sample
+> therefore expects the video to be color-inverted (ffmpeg `negate`) at encode
+> time, and the codec/decoder are left untouched. See the comment in
+> [src/main.cpp](src/main.cpp) for details.
 
-***
+### Build
 
-# Editing this README
+```bash
+git clone --recursive https://github.com/tmg1-labs/tmg1-esp32-demo
+cd tmg1-esp32-demo
+pio run -e esp32dev            # ESP32 DevKit
+pio run -e seeed_xiao-esp32c3  # Seeed XIAO ESP32-C3
+pio run -e super-mini-k2       # Super Mini K2 (ESP32-C3)
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Requirements:
 
-## Suggestions for a good README
+- [PlatformIO](https://platformio.org/) (`pip install platformio`).
+- The `tmg1-codec` submodule. If you forgot `--recursive`, fetch it with
+  `git submodule update --init --recursive`.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Upload / Flash
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+pio run -e esp32dev -t upload     # flash the firmware
+pio run -e esp32dev -t uploadfs   # flash the LittleFS image built from data/
+pio device monitor -b 115200      # serial monitor
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Place your `.tmg1` file in `data/`. The sample plays `/sample-video.tmg1` from
+LittleFS (see [src/main.cpp](src/main.cpp)), so name the file accordingly or
+adjust `videoFileName`.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Tests
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```bash
+# PlatformIO native tests
+pio test -e native -v
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+# tmg1-codec unit tests (CMake + Unity)
+cmake -B build -S lib/tmg1-codec -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+cd build && ctest --output-on-failure
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## Build & CI
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+CI runs on GitLab (`.gitlab-ci.yml`) with two jobs: `test_native` (PlatformIO
+native tests) and `test_cmake` (codec ctest). Submodules are fetched with
+`GIT_SUBMODULE_STRATEGY: recursive`.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## TMG1 Format
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+The authoritative byte-level layout of `.tmg1` lives in the standalone
+[**TMG1 format specification**](https://github.com/tmg1-labs/.github/blob/main/docs/tmg1-format.md).
+See [`tmg1-codec`](https://github.com/tmg1-labs/tmg1-codec) for the codec
+internals and the C++/FFI API, and [`tmg1-cli`](https://github.com/tmg1-labs/tmg1-cli)
+for encoding `.tmg1` files on the desktop.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+## Related projects
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Part of **[TMG1 Labs](https://github.com/tmg1-labs)** — see the organization
+profile for all repositories in the project.
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+MIT
