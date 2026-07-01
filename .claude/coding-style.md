@@ -17,7 +17,11 @@
 
 ## その他のルール
 - 軽量・高速・低メモリを意識する（ESP32 ターゲット）。
-- 入出力はストリーム（`Tmg1Stream`）経由。フレーム全体をメモリに溜めない。
+- 入出力はストリーム（`Tmg1Stream`）経由。フレーム全体をメモリに溜めない
+  （`tmg1-codec` が提供するAPIを`src/main.cpp`から利用する側であり、本リポジトリ自身は
+  ストリーム抽象を実装しない）。
 - Arduino 専用コードは `#if defined(ARDUINO)`、デスクトップ専用は `#if !defined(ARDUINO)` でガード。
-- C API（`c_api/`）の引数は C++ 側の `EncodeConfig` と同期させる（riceMode/riceK 等）。
-- テストはカバレッジ 100% に近づける。FileHeader 等の構造変更時はテストデータも更新する。
+- 本リポジトリは `tmg1-codec` の C API を直接変更しない（変更は `tmg1-codec` 本流で行う。
+  引数同期ルールは同リポジトリの coding-style.md 参照）。
+- `test/` の PlatformIO native テストは `src/main.cpp` 側のロジック（表示・LittleFS読み込み等）を
+  対象とする。codec自体のテストは `tmg1-codec` の CI が担う。
