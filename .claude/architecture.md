@@ -3,19 +3,21 @@
 ## 全体構成
 
 TMG1 動画フォーマットのデコーダ/エンコーダ。コアアルゴリズムは
-プラットフォーム非依存の C++ ライブラリ `lib/tmg1-codec` に集約し、
-Arduino(ESP32) と Rust CLI(`tmg1-cli`) の双方から共有する。
+プラットフォーム非依存の C++ ライブラリ `tmg1-codec`（別リポジトリ）に集約し、
+Arduino(ESP32) と Rust CLI(`tmg1-cli`) の双方から共有する。本リポジトリはそれを
+PlatformIO の `lib_deps`（git タグ `#v0.2.0`）で取得して実機で動かす消費者。
 
 ```
 tmg1-esp32-demo (このリポジトリ)
 ├── src/main.cpp            ... ESP32 サンプル (LittleFS から再生 → U8g2 OLED 表示)
-├── lib/tmg1-codec/         ... 共通コーデック (サブモジュール / 別リポジトリ)
-│   ├── include/tmg1/       ... ヘッダ (types.h, io.h, decoder.h, encoder.h ...)
-│   ├── src/                ... 実装
-│   ├── c_api/              ... extern "C" API (Rust FFI 用)
-│   └── test/               ... Unity テスト (CMake 経由)
 ├── test/                   ... PlatformIO native テスト
-└── docs/                   ... 実装計画・仕様サブモジュール
+└── docs/                   ... 実装計画
+
+tmg1-codec (別リポジトリ / lib_deps で取得 → .pio/libdeps/<env>/tmg1-codec)
+├── include/tmg1/           ... ヘッダ (types.h, io.h, decoder.h, encoder.h ...)
+├── src/                    ... 実装
+├── c_api/                  ... extern "C" API (Rust FFI 用)
+└── test/                   ... Unity テスト (codec 本体 CI の CMake で実行)
 ```
 
 ## 入出力モデル
@@ -49,5 +51,5 @@ tmg1-esp32-demo (このリポジトリ)
 
 - v1 フォーマットとの後方互換を持ち込まない（v2 のみ）。
 - `src/` を native ビルドに含めない（Arduino 依存があるため `build_src_filter = -<*>`）。
-- codec の分岐コピーを増やさない。修正は `lib/tmg1-codec` 本流に入れ、サブモジュールポインタで同期する。
+- codec の分岐コピーを増やさない。修正は `tmg1-codec` 本流リポジトリに入れ、タグを切って `lib_deps` の `#vX.Y.Z` を上げて同期する。
 - `std::max/std::min` に整数リテラルを直接渡さない（RISC-V で型不一致。`(uint32_t)` 明示）。

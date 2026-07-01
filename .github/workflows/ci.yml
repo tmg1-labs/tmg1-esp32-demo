@@ -13,10 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      # docs/specification(gitlab ホスト)は不要。ビルドに必要な codec のみ取得する。
-      # 相対 URL ../tmg1-codec.git は GitHub 上で tmg1-labs/tmg1-codec.git に解決される。
-      - name: Init codec submodule
-        run: git submodule update --init lib/tmg1-codec
+      # codec は PlatformIO の lib_deps(git tag v0.2.0)で取得するため submodule init は不要。
 
       - uses: actions/setup-python@v5
         with:
@@ -34,27 +31,5 @@ jobs:
       - name: Native tests
         run: pio test -e native -v
 
-  # CMake テスト: lib/tmg1-codec の独立ビルド検証
-  test_cmake:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Init codec submodule
-        run: git submodule update --init lib/tmg1-codec
-
-      # Unity テストフレームワーク。CMakeLists.txt が vendor/unity を自動検出する。
-      - name: Checkout Unity
-        uses: actions/checkout@v5
-        with:
-          repository: ThrowTheSwitch/Unity
-          ref: v2.6.0
-          path: lib/tmg1-codec/vendor/unity
-
-      - name: Configure
-        run: cmake -B build -S lib/tmg1-codec -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: cmake --build build -j
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
+  # 注: codec 単体の CMake/ctest 検証は codec 本体リポジトリ(tmg1-labs/tmg1-codec)の
+  # CI が担うため、ここでは重複させない。本リポジトリは lib_deps で codec を消費する側。

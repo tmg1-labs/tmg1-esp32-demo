@@ -14,10 +14,10 @@
 - CI: GitHub Actions (`.github/workflows/ci.yml`)
 - フォーマッタ: clang-format (Google ベース, ColumnLimit 120)
 - フォーマット仕様: TMG1 (v2 / 32bit Range コーダ)
-- コーデック本体: `lib/tmg1-codec`（サブモジュール、別リポジトリ。CLI/Arduino で共有）
+- コーデック本体: `tmg1-codec`（別リポジトリ。PlatformIO `lib_deps` の git タグ `#v0.2.0` で取得。CLI/Arduino で共有）
 
 ## 関連リポジトリ
-- `tmg1-codec`: 共通C++コーデックライブラリ（このリポジトリにサブモジュールとして同梱）
+- `tmg1-codec`: 共通C++コーデックライブラリ（PlatformIO `lib_deps` の git タグで取得。旧: サブモジュール同梱）
 - `tmg1-cli`: Rust 製 CLI（codec を FFI で利用、dotnet版とパリティ進行中）
 
 ## Claudeへの指示

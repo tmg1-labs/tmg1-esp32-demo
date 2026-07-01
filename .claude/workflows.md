@@ -2,9 +2,7 @@
 
 ## セットアップ
 ```bash
-# サブモジュール込みでクローン / 取得
-git submodule update --init --recursive
-# PlatformIO (pip 経由)
+# PlatformIO (pip 経由)。codec は lib_deps(git タグ) で自動取得されるためサブモジュール不要。
 pip install platformio
 ```
 
@@ -24,26 +22,21 @@ pio device monitor -b 115200
 
 ## テスト
 ```bash
-# PlatformIO native テスト
+# PlatformIO native テスト（codec は lib_deps で自動取得される）
 pio test -e native -v
-
-# コーデック単体 (CMake + Unity)
-cmake -B build -S lib/tmg1-codec -DCMAKE_BUILD_TYPE=Release
-cmake --build build -- -j$(nproc)
-cd build && ctest --output-on-failure
 ```
-- CMake テストは Unity を `lib/tmg1-codec/vendor/unity` に clone して使う（CI 参照）。
+- codec 単体の CMake + Unity テストは codec 本体リポジトリ(`tmg1-labs/tmg1-codec`)の CI が担う。
+  本リポジトリでは重複させない。
 
 ## CI
-- `.github/workflows/ci.yml`（GitHub Actions、`ubuntu-latest`）: `test_native`(pio) と `test_cmake`(ctest) の 2 ジョブ。
+- `.github/workflows/ci.yml`（GitHub Actions、`ubuntu-latest`）: `test_native`(pio) の 1 ジョブ。
 - 実行条件: `push`（`main` / `feature/**` ブランチ）と `pull_request`。
-- サブモジュールは recursive にせず、ビルドに必要な `lib/tmg1-codec` のみ `git submodule update --init` で取得
-  （`docs/specification` は gitlab.com 他ホストで不要なため除外）。相対 URL `../tmg1-codec.git` は GitHub の
-  `tmg1-labs/tmg1-codec` に解決される。
+- codec は PlatformIO の `lib_deps`（`https://github.com/tmg1-labs/tmg1-codec.git#v0.2.0`）で取得するため
+  サブモジュール init は不要。
 
-## codec サブモジュールの同期
-1. `lib/tmg1-codec` 本流（別リポジトリ）で修正・push。
-2. このリポジトリで `lib/tmg1-codec` のポインタを更新し、コミット（CLI 側も同様に同期）。
+## codec の同期（lib_deps）
+1. `tmg1-codec` 本流（別リポジトリ）で修正・push し、`git tag vX.Y.Z` を切って push。
+2. このリポジトリの `platformio.ini` 各 env の `lib_deps` の `#vX.Y.Z` を上げてコミット（CLI 側も同様に同期）。
 
 ## 動画 → tmg1 変換
 - ffmpeg パイプライン + Rust CLI(`tmg1-cli`)。決定経緯は `.claude/context/session-history.md` を参照。
