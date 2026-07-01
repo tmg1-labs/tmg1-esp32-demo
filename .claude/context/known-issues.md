@@ -4,6 +4,22 @@
 
 ## ビルド・CI
 
+### GitHub Actions: Linux ARM64 ネイティブホストランナーが利用可能（2026-07-01、cli release.yml で採用）
+- **内容**: `ubuntu-24.04-arm` / `ubuntu-22.04-arm` ラベルで、クロスコンパイル無しに aarch64 をネイティブビルドできる
+  GitHub提供ホストランナーが存在する（2025-01時点でPublic Preview、GitHub公式ブログで確認）。パブリックリポジトリなら無料、
+  プライベートリポジトリでは使えない。プレビュー期間中はピーク時にキュー待ちが長くなる可能性がある。
+- **用途**: `tmg1-cli` の `.github/workflows/release.yml` で `linux-aarch64` ターゲットに採用。`build.rs` の `cc` クレートに
+  よるC++コンパイルもクロスツールチェーン不要でそのまま通った（初回実走で確認済み）。
+
+### cli: `cargo publish`（crates.io 公開）は submodule 依存構成のままでは不可（2026-07-01 判明）
+- **症状/懸念**: `cargo package`/`cargo publish` は git 管理下ファイル（`git ls-files` 相当）のみ梱包し、submodule
+  （`tmg1-cli` の `tmg1-codec/`）の中身は含まれない。`build.rs` が参照する codec の C++ ソースが欠落しビルド不能になる。
+- **回避策（未着手）**: codec ソースを `tmg1-cli` 側へ vendor コピーするか、`tmg1-codec-sys` 的な別クレートへ分離して
+  そちらに vendor する。現行方針「codecの分岐コピーを増やさない」（architecture.md）と衝突するため、進めるなら方針側の
+  判断も必要。
+- **現状動く範囲**: `cargo install --path .`（ローカルクローン、submodule init 済み前提）は動作確認済み。
+  `cargo install --git <url>`（cargoがgit依存のsubmoduleも取得する想定）は未検証。crates.io 公開のみが不可。
+
 ### submodule → lib_deps 移行時: 撤去した submodule の remote が古いホストのまま残る（2026-07-01）
 - **症状**: 遅れた submodule ポインタを最新へ上げようと `git submodule` 配下で `git fetch origin` しても
   目的のコミットが取れず `fatal: unable to read tree <sha>` / `Not a valid object name`。

@@ -1,8 +1,22 @@
 # 現在の作業コンテキスト
 
-最終更新: 2026-07-01（codec を submodule → PlatformIO lib_deps 移行 + Node20 警告対応。**全リポジトリ push 済み**）
+最終更新: 2026-07-01（`tmg1-cli` cargo install対応 + release.yml新規 + v0.2.0リリース公開済み）
 
 ## 今やっていること
+- **`tmg1-cli` を cargo でインストール可能にする対応 + v0.2.0 リリース**（2026-07-01、cli。**push・タグpush済み、Release公開済み**）。
+  - 背景: 従来の README 手順（`cargo build --release`）は `target/release/tmg1` を作るだけで、PATH配置や配布バイナリの提供手段が無かった。
+  - README(英/日): 「`cargo install --path .` で `~/.cargo/bin` へ配置できる」旨を追記（commit `989de7e`）。ダウンロード方法（Release経由）の追記はユーザー判断で**今回見送り**。
+  - **crates.io への `cargo publish` は不可と判明**（未着手・保留）: `tmg1-codec` をサブモジュールとして参照しており、`cargo package` は git 管理下ファイルのみ梱包するためサブモジュール中身（`tmg1-codec/`）が抜け落ちる。公開するなら codec ソースの vendor化 か `tmg1-codec-sys` 的な別クレート分離が要る。現行方針「codecの分岐コピーを増やさない」と衝突するため architecture.md 側の判断も必要（詳細は known-issues.md）。
+  - **リリースワークフロー新規作成**: `.github/workflows/release.yml`（commit `7344b96`）。タグ push(`v*`) →
+    `create-release` ジョブで `gh release create --generate-notes` により**即時公開**のリリースを作成 →
+    4ターゲット（`linux-x86_64` / `linux-aarch64` / `macos-aarch64` / `windows-x86_64`）を各OSネイティブランナーで
+    ビルドし `gh release upload --clobber` で添付。クロスコンパイル不要、サードパーティのrelease系アクションも不使用（`gh` CLI標準搭載のみ）。
+    - `linux-aarch64` は `ubuntu-24.04-arm`（GitHub提供のネイティブARM64ホストランナー）を採用（詳細は known-issues.md）。
+  - `Cargo.toml` を `0.1.0`→`0.2.0` に更新（commit `b8f6df6`）。
+  - **検証**: タグ `v0.2.0` を push しワークフロー実走、4ジョブとも一発 green。
+    https://github.com/tmg1-labs/tmg1-cli/releases/tag/v0.2.0 に4バイナリ添付済み。
+
+## 今やっていること（過去分）
 - **codec を submodule から PlatformIO `lib_deps`(git タグ)へ移行**（2026-07-01、esp32-demo。**push 済み・CI green**）。
   - 背景: codec が GitHub 公開済みのため、サブモジュール同梱をやめ「純粋な消費者」に寄せた。バージョンは git タグで固定。
   - **codec repo**（正本 `d:/workspace/TsuMuGi/tmg1-codec`）: `library.properties` の url を gitlab→github に修正（commit `a4aa9a9`）→ **`v0.2.0` タグを打って push**。lib_deps はこのタグを参照。
@@ -16,8 +30,6 @@
 - **submodule ポインタ同期のずれを是正**（移行前の中間作業、commit `147bc70`）。esp32-demo が指す codec が `90905a7` で 5 コミット遅れ（docs/CI/LICENSE のみ、コード差分なし）→ `8dfdfea` へ同期。この過程で submodule remote がまだ gitlab を指していたため `git submodule sync` で GitHub へ貼り直し。※直後の lib_deps 移行で submodule 自体を撤去。
 - **CI の Node20 deprecation 警告に対応**（2026-07-01、esp32-demo commit `b551938`、push 済み・CI green・annotations 0）。
   - `actions/setup-python@v5`・`actions/cache@v4` が Node20 ランタイムで非推奨警告 → Node24 対応の **v6 系**(`setup-python@v6.3.0`/`cache@v6.1.0`)へ更新。checkout は既に v5(Node24)。
-
-## 今やっていること（過去分）
 - **CI を GitLab CI → GitHub Actions へ移行**（2026-07-01、codec/cli/arduino の3リポジトリ、各 main、いずれも本セッションでコミット）。
   - 各リポジトリで `.github/workflows/ci.yml` を新規追加し `.gitlab-ci.yml` を `git rm`（一本化）。
   - 共通方針: トリガは `push`(branches: main, feature/**) + `pull_request`。runner は `ubuntu-latest`（rust/g++/cmake/python 同梱のため image 指定・apt 不要）。
