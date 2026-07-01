@@ -11,9 +11,9 @@ through [U8g2](https://github.com/olikraus/u8g2).
 The decoding itself is **not** implemented here — it lives in `tmg1-codec`, which
 is an Arduino library in its own right (it ships a `library.properties` and the
 `tmg1/arduino_stream.h` adapter). This repository is the **example**:
-[src/main.cpp](src/main.cpp) is a sample sketch, and the codec is vendored as a
-submodule only so the example builds — pinned to the exact codec commit used to
-encode, so the on-device decoder always matches the format it was given.
+[src/main.cpp](src/main.cpp) is a sample sketch, and the codec is pulled in via
+PlatformIO `lib_deps` pinned to a git tag (`#v0.2.0`), so the on-device decoder
+always matches a known-good release of the format.
 
 ## Using the codec in your own project
 
@@ -86,7 +86,7 @@ video with [`tmg1-cli`](https://github.com/tmg1-labs/tmg1-cli).
 ### Build
 
 ```bash
-git clone --recursive https://github.com/tmg1-labs/tmg1-esp32-demo
+git clone https://github.com/tmg1-labs/tmg1-esp32-demo
 cd tmg1-esp32-demo
 pio run -e esp32dev            # ESP32 DevKit
 pio run -e seeed_xiao-esp32c3  # Seeed XIAO ESP32-C3
@@ -96,8 +96,8 @@ pio run -e super-mini-k2       # Super Mini K2 (ESP32-C3)
 Requirements:
 
 - [PlatformIO](https://platformio.org/) (`pip install platformio`).
-- The `tmg1-codec` submodule. If you forgot `--recursive`, fetch it with
-  `git submodule update --init --recursive`.
+- `tmg1-codec` is fetched automatically from `lib_deps` (git tag) on first build —
+  no submodule setup needed.
 
 ### Upload / Flash
 
@@ -116,19 +116,16 @@ adjust `videoFileName`.
 ```bash
 # PlatformIO native tests
 pio test -e native -v
-
-# tmg1-codec unit tests (CMake + Unity)
-cmake -B build -S lib/tmg1-codec -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-cd build && ctest --output-on-failure
 ```
+
+The codec's own unit tests (CMake + Unity) live in and are run by
+[`tmg1-codec`](https://github.com/tmg1-labs/tmg1-codec); they are not duplicated here.
 
 ## Build & CI
 
-CI runs on GitHub Actions (`.github/workflows/ci.yml`) with two jobs:
-`test_native` (PlatformIO native tests) and `test_cmake` (codec ctest). Only the
-`lib/tmg1-codec` submodule is initialized (the docs submodule is not needed for
-builds).
+CI runs on GitHub Actions (`.github/workflows/ci.yml`) with a single
+`test_native` job (PlatformIO native tests). The codec is pulled from `lib_deps`
+(git tag), so no submodule initialization is required.
 
 ## TMG1 Format
 

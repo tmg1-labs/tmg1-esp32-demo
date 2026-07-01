@@ -13,9 +13,9 @@
 `tmg1-codec` にあり、これ自体が独立した Arduino ライブラリです
 （`library.properties` と `tmg1/arduino_stream.h` アダプタを同梱）。本リポジトリは
 その**サンプル**で、[src/main.cpp](src/main.cpp) がサンプルスケッチ、codec は
-サンプルがビルドできるようサブモジュールとして同梱しているだけです。エンコードに
-使った codec コミットにサブモジュールで固定されるため、デバイス側デコーダの
-フォーマット解釈は常にエンコード時と一致します。
+PlatformIO の `lib_deps` で git タグ（`#v0.2.0`）に固定して取得しているだけです。
+既知の正常リリースにピン留めされるため、デバイス側デコーダのフォーマット解釈は
+常に一致します。
 
 ## 自分のプロジェクトで codec を使う
 
@@ -86,7 +86,7 @@ void setup() {
 ### ビルド
 
 ```bash
-git clone --recursive https://github.com/tmg1-labs/tmg1-esp32-demo
+git clone https://github.com/tmg1-labs/tmg1-esp32-demo
 cd tmg1-esp32-demo
 pio run -e esp32dev            # ESP32 DevKit
 pio run -e seeed_xiao-esp32c3  # Seeed XIAO ESP32-C3
@@ -96,8 +96,8 @@ pio run -e super-mini-k2       # Super Mini K2 (ESP32-C3)
 必要なもの:
 
 - [PlatformIO](https://platformio.org/)（`pip install platformio`）。
-- `tmg1-codec` サブモジュール。`--recursive` を付け忘れた場合は
-  `git submodule update --init --recursive` で取得します。
+- `tmg1-codec` は初回ビルド時に `lib_deps`（git タグ）から自動取得されます。
+  サブモジュールの準備は不要です。
 
 ### アップロード / 書き込み
 
@@ -116,18 +116,17 @@ pio device monitor -b 115200      # シリアルモニタ
 ```bash
 # PlatformIO native テスト
 pio test -e native -v
-
-# tmg1-codec 単体テスト（CMake + Unity）
-cmake -B build -S lib/tmg1-codec -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-cd build && ctest --output-on-failure
 ```
+
+codec 単体テスト（CMake + Unity）は
+[`tmg1-codec`](https://github.com/tmg1-labs/tmg1-codec) 本体リポジトリの CI が
+実行します。本リポジトリでは重複させません。
 
 ## ビルドと CI
 
-CI は GitHub Actions（`.github/workflows/ci.yml`）で 2 ジョブを実行します:
-`test_native`（PlatformIO native テスト）と `test_cmake`（codec の ctest）。
-ビルドに必要な `lib/tmg1-codec` サブモジュールのみ初期化します（docs サブモジュールは不要）。
+CI は GitHub Actions（`.github/workflows/ci.yml`）で `test_native`
+（PlatformIO native テスト）1 ジョブを実行します。codec は `lib_deps`（git タグ）
+から取得するため、サブモジュールの初期化は不要です。
 
 ## TMG1 フォーマット
 
