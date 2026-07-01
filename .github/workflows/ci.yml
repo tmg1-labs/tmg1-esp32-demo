@@ -31,5 +31,3 @@ jobs:
       - name: Native tests
         run: pio test -e native -v
 
-  # 注: codec 単体の CMake/ctest 検証は codec 本体リポジトリ(tmg1-labs/tmg1-codec)の
-  # CI が担うため、ここでは重複させない。本リポジトリは lib_deps で codec を消費する側。

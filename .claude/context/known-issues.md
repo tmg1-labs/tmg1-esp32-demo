@@ -4,6 +4,30 @@
 
 ## ビルド・CI
 
+### submodule → lib_deps 移行時: 撤去した submodule の remote が古いホストのまま残る（2026-07-01）
+- **症状**: 遅れた submodule ポインタを最新へ上げようと `git submodule` 配下で `git fetch origin` しても
+  目的のコミットが取れず `fatal: unable to read tree <sha>` / `Not a valid object name`。
+- **原因**: submodule のローカル clone の `origin` が**旧ホスト(gitlab)のまま**だった。superproject の
+  `.gitmodules` を相対 URL(`../tmg1-codec.git`)に変えても、既存 submodule の `.git/config` remote は自動追随しない。
+- **回避策**: `git submodule sync <path>` で `.gitmodules` の URL を submodule の remote へ反映してから fetch。
+- **撤去の後始末**: `git rm <submodule>` 後も `.git/modules/<name>` と `.git/config` の
+  `submodule.<name>.*` が残る。`git config --remove-section submodule.<name>` と
+  `rm -rf .git/modules/<name>` まで掃除する。index に無い未 init の submodule は `.gitmodules` の
+  該当節を消すだけでよい（`git rm` は「pathspec did not match」で失敗する）。
+
+### GitHub Actions: Node20 deprecation 警告（2026-07-01 対応）
+- **症状**: ワークフロー実行の annotation に「Node.js 20 is deprecated ... forced to run on Node.js 24」。
+  失敗ではないが警告が付く（`actions/cache@v4`・`actions/setup-python@v5` が該当）。
+- **回避策**: Node24 対応の**メジャー v6 系**へ更新（`setup-python@v6`・`cache@v6`）。`checkout` は v5 で Node24 済み。
+  更新後は annotations 0 で green。最新版は `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name` で確認できる。
+- **落とし穴（アクションごとに Node24 化のメジャーが違う）**: 「最新メジャー = Node24」とは限らない。
+  `runs.using` を実確認すること（`gh api repos/<o>/<r>/contents/action.yml?ref=<tag> --jq .content | base64 -d | grep using`）。
+  - `actions/upload-artifact`: **v4/v5 は node20**、**v6 以降が node24**（cli は v4→**v7** に更新。単一ファイル upload は挙動不変）。
+  - `Swatinem/rust-cache@v2`: 現行 v2.9.1 は **node24**（メジャー据え置きで OK）。
+  - `actions/checkout@v5`: node24。
+- **他ホスト/自前ランナー注意**: upload-artifact v6+ は Actions Runner 2.327.1 以上が必要。GitHub ホストの
+  `ubuntu-latest` は常に最新なので問題なし。self-hosted のときだけ要確認。
+
 ### CMake + Unity: link language / setUp 未定義
 - **症状**: `Cannot determine link language for target "unity"` / `undefined reference to 'setUp'` 等。
 - **原因**: `project()` に C 言語未宣言 / 生 Unity はテストに `setUp()`/`tearDown()` が必要（PlatformIO は自動生成）。
@@ -15,6 +39,10 @@
   Settings → CI/CD → Job token permissions に本リポジトリを許可リスト追加。
 
 ### GitHub Actions: 他ホスト submodule の recursive 取得失敗（2026-07-01 移行時）
+> **解決済み(2026-07-01)**: esp32-demo は submodule を全撤去し codec を lib_deps(git タグ)で取得、
+> `docs/specification`(gitlab)も削除したため本問題は消滅。以下は当時の記録。複数 submodule で一部が
+> 他ホストの構成に遭遇したときの一般論として残す。
+
 - **症状/懸念**: arduino の `.gitmodules` は `lib/tmg1-codec`(相対 URL) と `docs/specification`(gitlab.com 絶対 URL) の2つ。
   `actions/checkout` の `submodules: recursive` で取得すると、ビルドに不要な docs/specification まで gitlab.com から
   fetch しに行き、非公開/到達不可だとジョブが失敗しうる。
@@ -26,6 +54,9 @@
   リポジトリだけ要注意。
 
 ### GitHub Actions: ローカル未検証ジョブ（PlatformIO）
+> **解決済み(2026-07-01)**: `test_native`(`pio test -e native`)は GitHub Actions で実走・green 確認済み
+> （lib_deps 経由の codec 取得・コンパイルを含む）。ローカル PlatformIO 未導入の懸案は CI で解消した。
+
 - **状況**: arduino の `test_native`(`pio test -e native`)は開発機に PlatformIO 未導入で実走未検証のまま移行。
   cmake 系ジョブは WSL gcc で代替検証済み（全19テスト PASS）。
 - **対応**: GitHub push 後の初回ワークフロー実行で `test_native` の成否を必ず確認する。
